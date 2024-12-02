@@ -6,7 +6,7 @@
         <LangVersion>latest</LangVersion>
         <DebugType>full</DebugType>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
-        <Version>2.5.10</Version>
+        <Version>2.5.9</Version>
         <FileVersion>2.5.9</FileVersion>
         <Company>SpecterOps</Company>
         <Product>SharpHound</Product>
