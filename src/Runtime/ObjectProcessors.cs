@@ -12,6 +12,7 @@ using SharpHoundCommonLib.DirectoryObjects;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
 using SharpHoundCommonLib.Processors;
+using SharpHoundRPC.PortScanner;
 using Container = SharpHoundCommonLib.OutputTypes.Container;
 using Group = SharpHoundCommonLib.OutputTypes.Group;
 using Label = SharpHoundCommonLib.Enums.Label;
@@ -33,11 +34,12 @@ namespace Sharphound.Runtime {
         private readonly GPOLocalGroupProcessor _gpoLocalGroupProcessor;
         private readonly UserRightsAssignmentProcessor _userRightsAssignmentProcessor;
         private readonly LocalGroupProcessor _localGroupProcessor;
+        private readonly RegistryProcessor _registryProcessor;
         private readonly ILogger _log;
         private readonly CollectionMethod _methods;
         private readonly SPNProcessors _spnProcessor;
 
-        public ObjectProcessors(IContext context, ILogger log) {
+        public ObjectProcessors(IContext context, ILogger log, IPortScanner portScanner) {
             _context = context;
             _aclProcessor = new ACLProcessor(context.LDAPUtils);
             _spnProcessor = new SPNProcessors(context.LDAPUtils);
@@ -55,6 +57,7 @@ namespace Sharphound.Runtime {
             _gpoLocalGroupProcessor = new GPOLocalGroupProcessor(context.LDAPUtils);
             _userRightsAssignmentProcessor = new UserRightsAssignmentProcessor(context.LDAPUtils);
             _localGroupProcessor = new LocalGroupProcessor(context.LDAPUtils);
+            _registryProcessor = new RegistryProcessor(_log, context.DomainName);
             _methods = context.ResolvedCollectionMethods;
             _cancellationToken = context.CancellationTokenSource.Token;
             _log = log;
@@ -238,6 +241,7 @@ namespace Sharphound.Runtime {
             // DCRegistry
             if (resolvedSearchResult.IsDomainController &
                 (_methods & CollectionMethod.DCRegistry) != 0) {
+                await _context.DoDelay();
                 DCRegistryData dCRegistryData = new() {
                     CertificateMappingMethods = _dCRegistryProcessor.GetCertificateMappingMethods(apiName),
                     StrongCertificateBindingEnforcement =
@@ -296,6 +300,12 @@ namespace Sharphound.Runtime {
                     resolvedSearchResult.DisplayName, resolvedSearchResult.ObjectId,
                     resolvedSearchResult.Domain, resolvedSearchResult.IsDomainController);
                 ret.UserRights = await userRights.ToArrayAsync();
+            }
+
+            if ((_methods & CollectionMethod.Registry) != 0)
+            {
+                await _context.DoDelay();
+                ret.RegistryData = await _registryProcessor.ReadRegistrySettings(apiName);
             }
 
             if (!_methods.IsLocalGroupCollectionSet())

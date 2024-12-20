@@ -1,9 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31321.278
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharphound", "Sharphound.csproj", "{90A6822C-4336-433D-923F-F54CE66BA98F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B837B250-80BC-4086-B0DC-E43A956C3D1D} = {B837B250-80BC-4086-B0DC-E43A956C3D1D}
+		{FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186} = {FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpHoundRPC", "..\sharphoundcommon\src\SharpHoundRPC\SharpHoundRPC.csproj", "{FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpHoundCommonLib", "..\sharphoundcommon\src\CommonLib\SharpHoundCommonLib.csproj", "{B837B250-80BC-4086-B0DC-E43A956C3D1D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +23,14 @@ Global
 		{90A6822C-4336-433D-923F-F54CE66BA98F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90A6822C-4336-433D-923F-F54CE66BA98F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90A6822C-4336-433D-923F-F54CE66BA98F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDC2F19A-5B0A-4F64-99E0-4CB18D7CD186}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B837B250-80BC-4086-B0DC-E43A956C3D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B837B250-80BC-4086-B0DC-E43A956C3D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B837B250-80BC-4086-B0DC-E43A956C3D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B837B250-80BC-4086-B0DC-E43A956C3D1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

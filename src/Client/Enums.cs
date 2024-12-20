@@ -27,6 +27,7 @@
         CARegistry,
         DCRegistry,
         CertServices,
+        Registry,
         All
     }
 }
