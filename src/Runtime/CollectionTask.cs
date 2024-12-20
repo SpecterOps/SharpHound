@@ -61,8 +61,13 @@ namespace Sharphound.Runtime
         {
             for (var i = 0; i < _context.Threads; i++)
             {
-                var consumer = LDAPConsumer.ConsumeSearchResults(_ldapChannel, _compStatusChannel, _outputChannel,
-                    _context, i);
+                var consumer = LDAPConsumer.ConsumeSearchResults(
+                    _ldapChannel, 
+                    _compStatusChannel, 
+                    _outputChannel,
+                    _context, 
+                    i);
+
                 _taskPool.Add(consumer);
             }
 

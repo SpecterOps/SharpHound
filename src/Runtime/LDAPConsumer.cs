@@ -8,25 +8,32 @@ using Sharphound.Client;
 using SharpHoundCommonLib;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
+using SharpHoundCommonLib.Processors;
 
 namespace Sharphound.Runtime
 {
     public static class LDAPConsumer
     {
-        internal static async Task ConsumeSearchResults(Channel<IDirectoryObject> inputChannel,
-            Channel<CSVComputerStatus> computerStatusChannel, Channel<OutputBase> outputChannel, IContext context,
+        internal static async Task ConsumeSearchResults(
+            Channel<IDirectoryObject> inputChannel,
+            Channel<CSVComputerStatus> computerStatusChannel,
+            Channel<OutputBase> outputChannel,
+            IContext context,
             int id)
         {
             var log = context.Logger;
-            var processor = new ObjectProcessors(context, log);
+            var portScanner = new PortScanner() { Timeout = context.PortScanTimeout };
+            var processor = new ObjectProcessors(context, log, portScanner);
             var watch = new Stopwatch();
             var threadId = Thread.CurrentThread.ManagedThreadId;
 
             await foreach (var item in inputChannel.Reader.ReadAllAsync())
                 try
                 {
-                    if (await LdapUtils.ResolveSearchResult(item, context.LDAPUtils) is not (true, var res) || res == null || res.ObjectType == Label.Base) {
-                        if (item.TryGetDistinguishedName(out var dn)) {
+                    if (await LdapUtils.ResolveSearchResult(item, context.LDAPUtils) is not (true, var res) || res == null || res.ObjectType == Label.Base)
+                    {
+                        if (item.TryGetDistinguishedName(out var dn))
+                        {
                             log.LogTrace("Consumer failed to resolve entry for {item} or label was Base", dn);
                         }
                         continue;
