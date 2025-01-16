@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
+using System.Runtime.Remoting;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Channels;
@@ -130,8 +132,9 @@ namespace Sharphound.Runtime {
             ret.DomainSID = resolvedSearchResult.DomainSid;
 
             if ((_methods & CollectionMethod.ACL) != 0) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                (var aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 var gmsa = entry.GetByteProperty(LDAPProperties.GroupMSAMembership);
                 ret.Aces = aces.Concat(await _aclProcessor.ProcessGMSAReaders(gmsa, resolvedSearchResult.Domain)
                     .ToArrayAsync(cancellationToken: _cancellationToken)).ToArray();
@@ -187,7 +190,9 @@ namespace Sharphound.Runtime {
             ret.DomainSID = resolvedSearchResult.DomainSid;
 
             if ((_methods & CollectionMethod.ACL) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync(_cancellationToken);
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -320,7 +325,9 @@ namespace Sharphound.Runtime {
             ret.Properties.Add("samaccountname", entry.GetProperty(LDAPProperties.SAMAccountName));
 
             if ((_methods & CollectionMethod.ACL) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync(cancellationToken: _cancellationToken);
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -362,7 +369,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
                 ret.InheritanceHashes = _aclProcessor.GetInheritedAceHashes(entry, resolvedSearchResult).ToArray();
@@ -400,7 +409,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -425,7 +436,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
                 ret.InheritanceHashes = _aclProcessor.GetInheritedAceHashes(entry, resolvedSearchResult).ToArray();
@@ -471,8 +484,9 @@ namespace Sharphound.Runtime {
                 }
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry)
-                    .ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
                 ret.InheritanceHashes = _aclProcessor.GetInheritedAceHashes(entry, resolvedSearchResult).ToArray();
@@ -501,7 +515,9 @@ namespace Sharphound.Runtime {
 
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -528,7 +544,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -556,7 +574,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -634,7 +654,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -669,7 +691,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
@@ -697,7 +721,9 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
-                ret.Aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry).ToArrayAsync();
+                (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
+                ret.Properties.Add("doesanyacegrantownerrights", doesAnyAceGrantOwnerRights);
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", doesAnyInheritedAceGrantOwnerRights);
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
