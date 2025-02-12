@@ -572,6 +572,15 @@ namespace Sharphound.Runtime {
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
+            
+            // BED-5058: casecuritycollected, enrollmentagentrestrictionscollected, isuserspecifiessanenabledcollected,
+            // roleseparationenabledcollected properties should always be present under EnterpriseCA objects.
+            // Default value is false
+            // Collect properties from CA server registry
+            var cASecurityCollected = false;
+            var enrollmentAgentRestrictionsCollected = false;
+            var isUserSpecifiesSanEnabledCollected = false;
+            var roleSeparationEnabledCollected = false;
 
             if ((_methods & CollectionMethod.ACL) != 0 || (_methods & CollectionMethod.CertServices) != 0) {
                 (ret.Aces, bool doesAnyAceGrantOwnerRights, bool doesAnyInheritedAceGrantOwnerRights) = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true);
@@ -601,11 +610,6 @@ namespace Sharphound.Runtime {
             }
 
             if ((_methods & CollectionMethod.CARegistry) != 0) {
-                // Collect properties from CA server registry
-                var cASecurityCollected = false;
-                var enrollmentAgentRestrictionsCollected = false;
-                var isUserSpecifiesSanEnabledCollected = false;
-                var roleSeparationEnabledCollected = false;
                 var caName = entry.GetProperty(LDAPProperties.Name);
                 var dnsHostName = entry.GetProperty(LDAPProperties.DNSHostName);
                 if (caName != null && dnsHostName != null) {
@@ -634,12 +638,12 @@ namespace Sharphound.Runtime {
                     roleSeparationEnabledCollected = cARegistryData.RoleSeparationEnabled.Collected;
                     ret.CARegistryData = cARegistryData;
                 }
-
-                ret.Properties.Add("casecuritycollected", cASecurityCollected);
-                ret.Properties.Add("enrollmentagentrestrictionscollected", enrollmentAgentRestrictionsCollected);
-                ret.Properties.Add("isuserspecifiessanenabledcollected", isUserSpecifiesSanEnabledCollected);
-                ret.Properties.Add("roleseparationenabledcollected", roleSeparationEnabledCollected);
             }
+            
+            ret.Properties.Add("casecuritycollected", cASecurityCollected);
+            ret.Properties.Add("enrollmentagentrestrictionscollected", enrollmentAgentRestrictionsCollected);
+            ret.Properties.Add("isuserspecifiessanenabledcollected", isUserSpecifiesSanEnabledCollected);
+            ret.Properties.Add("roleseparationenabledcollected", roleSeparationEnabledCollected);
 
             return ret;
         }
