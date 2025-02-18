@@ -27,6 +27,10 @@
         CARegistry,
         DCRegistry,
         CertServices,
+        WebClientService,
+        LdapServices,
+        SmbInfo,
+        EventLogs,
         All
     }
 }

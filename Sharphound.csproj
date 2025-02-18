@@ -2,15 +2,16 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net462</TargetFramework>
+        <TargetFramework>net472</TargetFramework>
         <LangVersion>latest</LangVersion>
         <DebugType>full</DebugType>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
-        <Version>2.5.13</Version>
-        <FileVersion>2.5.13</FileVersion>
+        <Version>2.5.14</Version>
+        <FileVersion>2.5.14</FileVersion>
         <Company>SpecterOps</Company>
         <Product>SharpHound</Product>
         <AssemblyName>SharpHound</AssemblyName>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -31,10 +32,9 @@
         <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
-
     <ItemGroup>
 <!--       <Reference Include="SharpHoundCommon">-->
-<!--           <HintPath>..\SharpHoundCommon\src\CommonLib\bin\Debug\net462\SharpHoundCommonLib.dll</HintPath>-->
+<!--           <HintPath>..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll</HintPath>-->
 <!--       </Reference>-->
         <Reference Include="System.DirectoryServices" />
         <Reference Include="System.DirectoryServices.Protocols" />

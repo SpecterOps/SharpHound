@@ -14,7 +14,7 @@ namespace Sharphound
         // Options that affect what is collected
         [Option('c', "collectionmethods", Default = new[] { "Default" },
             HelpText =
-                "Collection Methods: Group, LocalGroup, LocalAdmin, RDP, DCOM, PSRemote, Session, Trusts, ACL, Container, ComputerOnly, GPOLocalGroup, LoggedOn, ObjectProps, SPNTargets, UserRights, Default, DCOnly, CARegistry, DCRegistry, CertServices, All")]
+                "Collection Methods: Group, LocalGroup, LocalAdmin, RDP, DCOM, PSRemote, Session, Trusts, ACL, Container, ComputerOnly, GPOLocalGroup, LoggedOn, ObjectProps, SPNTargets, UserRights, Default, DCOnly, CARegistry, DCRegistry, CertServices, WebClientService, LdapServices, SmbInfo, EventLogs, All")]
         public IEnumerable<string> CollectionMethods { get; set; }
 
         [Option('d', "domain", Default = null, HelpText = "Specify domain to enumerate")]
@@ -204,6 +204,10 @@ namespace Sharphound
                     CollectionMethodOptions.CARegistry => CollectionMethod.CARegistry,
                     CollectionMethodOptions.DCRegistry => CollectionMethod.DCRegistry,
                     CollectionMethodOptions.CertServices => CollectionMethod.CertServices,
+                    CollectionMethodOptions.WebClientService => CollectionMethod.WebClientService,
+                    CollectionMethodOptions.LdapServices => CollectionMethod.LdapServices,
+                    CollectionMethodOptions.SmbInfo => CollectionMethod.SmbInfo,
+                    CollectionMethodOptions.EventLogs => CollectionMethod.EventLogs,
                     CollectionMethodOptions.All => CollectionMethod.All,
                     CollectionMethodOptions.None => CollectionMethod.None,
                     _ => throw new ArgumentOutOfRangeException()
