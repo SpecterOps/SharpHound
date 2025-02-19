@@ -345,26 +345,27 @@ namespace Sharphound.Runtime
                 ret.SmbInfo = await _smbProcessor.Scan(apiName);
             }
 
-            if (_methods.HasFlag(CollectionMethod.EventLogs))
-            {
-                var cred = _context.Flags.DoLocalAdminSessionEnum
-                    ? new NetworkCredential(_context.LocalAdminUsername, _context.LocalAdminPassword, ".")
-                    : null;
-                
-                var evntProcessor = new EventLogProcessor(
-                    _context.LDAPUtils,
-                    _log,
-                    apiName,
-                    resolvedSearchResult.Domain,
-                    EventLogCollection.InboundNtlmSessions,
-                    numDays: 7,
-                    readEventDelayMs: 1,
-                    10000,
-                    cred
-                );
-
-                ret.NtlmSessions = evntProcessor.ReadEvents();
-            }
+            // Re-introduce this when we're ready for Event Log collection
+            // if (_methods.HasFlag(CollectionMethod.EventLogs))
+            // {
+            //     var cred = _context.Flags.DoLocalAdminSessionEnum
+            //         ? new NetworkCredential(_context.LocalAdminUsername, _context.LocalAdminPassword, ".")
+            //         : null;
+            //     
+            //     var evntProcessor = new EventLogProcessor(
+            //         _context.LDAPUtils,
+            //         _log,
+            //         apiName,
+            //         resolvedSearchResult.Domain,
+            //         EventLogCollection.InboundNtlmSessions,
+            //         numDays: 7,
+            //         readEventDelayMs: 1,
+            //         10000,
+            //         cred
+            //     );
+            //
+            //     ret.NtlmSessions = evntProcessor.ReadEvents();
+            // }
 
             if (!_methods.IsLocalGroupCollectionSet())
                 return ret;
