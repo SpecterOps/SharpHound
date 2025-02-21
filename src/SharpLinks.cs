@@ -33,7 +33,7 @@ namespace Sharphound
 {
     internal class SharpLinks : Links<IContext> {
         /// <summary>
-        ///     Init and check defaults
+        ///     Define methods that SharpHound executes as part of operation pipeline.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
