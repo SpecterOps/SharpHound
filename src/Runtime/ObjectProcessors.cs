@@ -15,6 +15,7 @@ using SharpHoundCommonLib.DirectoryObjects;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
 using SharpHoundCommonLib.Processors;
+using SharpHoundRPC.PortScanner;
 using Container = SharpHoundCommonLib.OutputTypes.Container;
 using Group = SharpHoundCommonLib.OutputTypes.Group;
 using Label = SharpHoundCommonLib.Enums.Label;
@@ -41,6 +42,7 @@ namespace Sharphound.Runtime {
         private readonly SPNProcessors _spnProcessor;
         private readonly WebClientServiceProcessor _webClientProcessor;
         private readonly SmbProcessor _smbProcessor;
+        private readonly RegistryProcessor _registryProcessor;
 
         public ObjectProcessors(IContext context, ILogger log) {
             _context = context;
@@ -61,6 +63,7 @@ namespace Sharphound.Runtime {
             _userRightsAssignmentProcessor = new UserRightsAssignmentProcessor(context.LDAPUtils);
             _localGroupProcessor = new LocalGroupProcessor(context.LDAPUtils);
             _webClientProcessor = new WebClientServiceProcessor(log);
+            _registryProcessor = new RegistryProcessor(null, context.DomainName);
             _smbProcessor = new SmbProcessor(context.PortScanTimeout);
             _methods = context.ResolvedCollectionMethods;
             _cancellationToken = context.CancellationTokenSource.Token;
@@ -306,6 +309,11 @@ namespace Sharphound.Runtime {
                 ret.UserRights = await userRights.ToArrayAsync();
             }
 
+            if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
+                await _context.DoDelay();
+                ret.RegistryData = await _registryProcessor.ReadRegistrySettings(apiName);
+            }
+
             if (_methods.HasFlag(CollectionMethod.WebClientService)) {
                 ret.IsWebClientRunning = await _webClientProcessor.IsWebClientRunning(apiName);
             }
@@ -353,6 +361,7 @@ namespace Sharphound.Runtime {
             _log.LogDebug("Processing DC: {dc}", apiName);
 
             if (_methods.HasFlag(CollectionMethod.DCRegistry)) {
+                await _context.DoDelay();
                 DCRegistryData dCRegistryData = new() {
                     CertificateMappingMethods = _dcRegistryProcessor.GetCertificateMappingMethods(apiName),
                     StrongCertificateBindingEnforcement =
