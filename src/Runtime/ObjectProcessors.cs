@@ -364,7 +364,16 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.LdapServices)) {
                 var dcLdapProcessor = new DCLdapProcessor(_context.PortScanTimeout, apiName, _log);
-                ret.LdapServices = await dcLdapProcessor.Scan();
+                var ldapServices = await dcLdapProcessor.Scan();
+                ret.Properties.Add("ldapenabled", ldapServices.HasLdap);
+                ret.Properties.Add("ldapsenabled", ldapServices.HasLdaps);
+                if (ldapServices.IsChannelBindingDisabled.Collected) {
+                    ret.Properties.Add("ldapsepa", ldapServices.IsChannelBindingDisabled);    
+                }
+
+                if (ldapServices.IsSigningRequired.Collected) {
+                    ret.Properties.Add("ldapsigning", ldapServices.IsSigningRequired);    
+                }
             }
         }
 
