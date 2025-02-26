@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -42,8 +43,7 @@ namespace Sharphound.Runtime {
         private readonly SPNProcessors _spnProcessor;
         private readonly WebClientServiceProcessor _webClientProcessor;
         private readonly SmbProcessor _smbProcessor;
-        private readonly RegistryProcessor _registryProcessor;
-
+        private readonly ConcurrentDictionary<string, RegistryProcessor> _registryProcessorMap = new();
         public ObjectProcessors(IContext context, ILogger log) {
             _context = context;
             _aclProcessor = new ACLProcessor(context.LDAPUtils);
@@ -63,7 +63,6 @@ namespace Sharphound.Runtime {
             _userRightsAssignmentProcessor = new UserRightsAssignmentProcessor(context.LDAPUtils);
             _localGroupProcessor = new LocalGroupProcessor(context.LDAPUtils);
             _webClientProcessor = new WebClientServiceProcessor(log);
-            _registryProcessor = new RegistryProcessor(null, context.DomainName);
             _smbProcessor = new SmbProcessor(context.PortScanTimeout);
             _methods = context.ResolvedCollectionMethods;
             _cancellationToken = context.CancellationTokenSource.Token;
@@ -311,7 +310,13 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
                 await _context.DoDelay();
-                ret.RegistryData = await _registryProcessor.ReadRegistrySettings(apiName);
+                if (_registryProcessorMap.TryGetValue(resolvedSearchResult.DomainSid, out var processor)) {
+                    ret.RegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
+                } else {
+                    var newProcessor = new RegistryProcessor(null, resolvedSearchResult.Domain);
+                    _registryProcessorMap.TryAdd(resolvedSearchResult.DomainSid, newProcessor);
+                    ret.RegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
+                }
             }
 
             if (_methods.HasFlag(CollectionMethod.WebClientService)) {
