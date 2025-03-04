@@ -382,7 +382,7 @@ namespace Sharphound.Runtime {
                 ret.Properties.Add("ldapavailable", ldapServices.HasLdap);
                 ret.Properties.Add("ldapsavailable", ldapServices.HasLdaps);
                 if (ldapServices.IsChannelBindingDisabled.Collected) {
-                    ret.Properties.Add("ldapsepa", ldapServices.IsChannelBindingDisabled.Result);    
+                    ret.Properties.Add("ldapsepa", !ldapServices.IsChannelBindingDisabled.Result);    
                 }
 
                 if (ldapServices.IsSigningRequired.Collected) {
