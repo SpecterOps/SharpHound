@@ -311,11 +311,11 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
                 await _context.DoDelay();
                 if (_registryProcessorMap.TryGetValue(resolvedSearchResult.DomainSid, out var processor)) {
-                    ret.RegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
+                    ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
                 } else {
                     var newProcessor = new RegistryProcessor(null, resolvedSearchResult.Domain);
                     _registryProcessorMap.TryAdd(resolvedSearchResult.DomainSid, newProcessor);
-                    ret.RegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
+                    ret.NTLMRegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
                 }
             }
 
@@ -379,14 +379,14 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.LdapServices)) {
                 var dcLdapProcessor = new DCLdapProcessor(_context.PortScanTimeout, apiName, _log);
                 var ldapServices = await dcLdapProcessor.Scan();
-                ret.Properties.Add("ldapenabled", ldapServices.HasLdap);
-                ret.Properties.Add("ldapsenabled", ldapServices.HasLdaps);
+                ret.Properties.Add("ldapavailable", ldapServices.HasLdap);
+                ret.Properties.Add("ldapsavailable", ldapServices.HasLdaps);
                 if (ldapServices.IsChannelBindingDisabled.Collected) {
-                    ret.Properties.Add("ldapsepa", ldapServices.IsChannelBindingDisabled);    
+                    ret.Properties.Add("ldapsepa", ldapServices.IsChannelBindingDisabled.Result);    
                 }
 
                 if (ldapServices.IsSigningRequired.Collected) {
-                    ret.Properties.Add("ldapsigning", ldapServices.IsSigningRequired);    
+                    ret.Properties.Add("ldapsigning", ldapServices.IsSigningRequired.Result);    
                 }
             }
         }
