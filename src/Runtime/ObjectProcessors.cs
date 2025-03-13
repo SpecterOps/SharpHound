@@ -378,7 +378,7 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.LdapServices)) {
                 var dcLdapProcessor = new DCLdapProcessor(_context.PortScanTimeout, apiName, _log);
-                var ldapServices = await dcLdapProcessor.Scan();
+                var ldapServices = await dcLdapProcessor.Scan(resolvedSearchResult.DisplayName);
                 ret.Properties.Add("ldapavailable", ldapServices.HasLdap);
                 ret.Properties.Add("ldapsavailable", ldapServices.HasLdaps);
                 if (ldapServices.IsChannelBindingDisabled.Collected) {
