@@ -718,14 +718,12 @@ namespace Sharphound.Runtime {
                 var enrollmentAgentRestrictionsCollected = false;
                 var isUserSpecifiesSanEnabledCollected = false;
                 var roleSeparationEnabledCollected = false;
-                var hostingComputer = "";
                 var caName = entry.GetProperty(LDAPProperties.Name);
                 var dnsHostName = entry.GetProperty(LDAPProperties.DNSHostName);
                 if (caName != null && dnsHostName != null) {
-                    
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
-                        hostingComputer = sid;
+                        ret.HostingComputer = sid;
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
                     }
@@ -733,13 +731,13 @@ namespace Sharphound.Runtime {
                     CARegistryData cARegistryData = new() {
                         IsUserSpecifiesSanEnabled = _certAbuseProcessor.IsUserSpecifiesSanEnabled(dnsHostName, caName),
                         EnrollmentAgentRestrictions = await _certAbuseProcessor.ProcessEAPermissions(caName,
-                            resolvedSearchResult.Domain, dnsHostName, hostingComputer),
+                            resolvedSearchResult.Domain, dnsHostName, ret.HostingComputer),
                         RoleSeparationEnabled = _certAbuseProcessor.RoleSeparationEnabled(dnsHostName, caName),
 
                         // The CASecurity exist in the AD object DACL and in registry of the CA server. We prefer to use the values from registry as they are the ground truth.
                         // If changes are made on the CA server, registry and the AD object is updated. If changes are made directly on the AD object, the CA server registry is not updated.
                         CASecurity = await _certAbuseProcessor.ProcessRegistryEnrollmentPermissions(caName,
-                            resolvedSearchResult.Domain, dnsHostName, hostingComputer)
+                            resolvedSearchResult.Domain, dnsHostName, ret.HostingComputer)
                     };
 
                     cASecurityCollected = cARegistryData.CASecurity.Collected;
