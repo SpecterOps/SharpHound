@@ -39,17 +39,17 @@ namespace Sharphound
             var logger = new BasicLogger((int)LogLevel.Information);
             logger.LogInformation("This version of SharpHound is compatible with the 5.0.0 Release of BloodHound");
 
-            // Checks the release version available on the machine.
-            var releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
-            if (releaseVersion == 0) releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
-            // The value 461808 corresponds to .Net 4.7.2
-            if (releaseVersion < 461808)
-            {
-                logger.LogError("The .Net Runtime is not compatible with SharpHound. Please update to .Net 4.7.2.");
-                return;
-            }
-
             try {
+                // Checks the release version available on the machine.
+                var releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
+                if (releaseVersion == 0) releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
+                // The value 461808 corresponds to .Net 4.7.2
+                if (releaseVersion < 461808)
+                {
+                    logger.LogError("The .Net Runtime is not compatible with SharpHound. Please update to .Net 4.7.2.");
+                    return;
+                }
+
                 var parser = new Parser(with => {
                     with.CaseInsensitiveEnumValues = true;
                     with.CaseSensitive = false;
