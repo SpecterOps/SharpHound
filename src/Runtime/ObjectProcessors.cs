@@ -712,27 +712,37 @@ namespace Sharphound.Runtime {
                 }
             }
 
-            if (_methods.HasFlag(CollectionMethod.CARegistry)) {
+            if (_methods.HasFlag(CollectionMethod.CARegistry))
+            {
                 // Collect properties from CA server registry
                 var cASecurityCollected = false;
                 var enrollmentAgentRestrictionsCollected = false;
                 var isUserSpecifiesSanEnabledCollected = false;
                 var roleSeparationEnabledCollected = false;
+                var rPCEncryptionCollected = false;
+                var disabledExtensionsCollected = false;
                 var caName = entry.GetProperty(LDAPProperties.Name);
                 var dnsHostName = entry.GetProperty(LDAPProperties.DNSHostName);
-                if (caName != null && dnsHostName != null) {
+                if (caName != null && dnsHostName != null)
+                {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
-                            (true, var sid) && sid.StartsWith("S-1-")) {
+                            (true, var sid) && sid.StartsWith("S-1-"))
+                    {
                         ret.HostingComputer = sid;
-                    } else {
+                    }
+                    else
+                    {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
                     }
 
-                    CARegistryData cARegistryData = new() {
+                    CARegistryData cARegistryData = new()
+                    {
                         IsUserSpecifiesSanEnabled = _certAbuseProcessor.IsUserSpecifiesSanEnabled(dnsHostName, caName),
                         EnrollmentAgentRestrictions = await _certAbuseProcessor.ProcessEAPermissions(caName,
                             resolvedSearchResult.Domain, dnsHostName, ret.HostingComputer),
                         RoleSeparationEnabled = _certAbuseProcessor.RoleSeparationEnabled(dnsHostName, caName),
+                        RPCEncryptionEnforced = _certAbuseProcessor.RPCEncryptionEnforced(dnsHostName, caName),
+                        DisabledExtensions = _certAbuseProcessor.DisabledExtensions(dnsHostName, caName),
 
                         // The CASecurity exist in the AD object DACL and in registry of the CA server. We prefer to use the values from registry as they are the ground truth.
                         // If changes are made on the CA server, registry and the AD object is updated. If changes are made directly on the AD object, the CA server registry is not updated.
@@ -744,8 +754,12 @@ namespace Sharphound.Runtime {
                     enrollmentAgentRestrictionsCollected = cARegistryData.EnrollmentAgentRestrictions.Collected;
                     isUserSpecifiesSanEnabledCollected = cARegistryData.IsUserSpecifiesSanEnabled.Collected;
                     roleSeparationEnabledCollected = cARegistryData.RoleSeparationEnabled.Collected;
+                    rPCEncryptionCollected = cARegistryData.RPCEncryptionEnforced.Collected;
+                    disabledExtensionsCollected = cARegistryData.DisabledExtensions.Collected;
                     ret.CARegistryData = cARegistryData;
-                } else {
+                }
+                else
+                {
                     _log.LogWarning("The CA name or dnsHostname properties are null.");
                 }
 
@@ -753,6 +767,8 @@ namespace Sharphound.Runtime {
                 ret.Properties.Add("enrollmentagentrestrictionscollected", enrollmentAgentRestrictionsCollected);
                 ret.Properties.Add("isuserspecifiessanenabledcollected", isUserSpecifiesSanEnabledCollected);
                 ret.Properties.Add("roleseparationenabledcollected", roleSeparationEnabledCollected);
+                ret.Properties.Add("rpcencryptioncollected", rPCEncryptionCollected);
+                ret.Properties.Add("disabledextensionscollected", disabledExtensionsCollected);
             }
 
             return ret;
