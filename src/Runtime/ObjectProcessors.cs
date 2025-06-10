@@ -722,6 +722,7 @@ namespace Sharphound.Runtime {
                 var enrollmentAgentRestrictionsCollected = false;
                 var isUserSpecifiesSanEnabledCollected = false;
                 var roleSeparationEnabledCollected = false;
+                var disabledExtensionsCollected = false;
                 var caName = entry.GetProperty(LDAPProperties.Name);
                 var dnsHostName = entry.GetProperty(LDAPProperties.DNSHostName);
                 if (caName != null && dnsHostName != null) {
@@ -744,6 +745,7 @@ namespace Sharphound.Runtime {
                         EnrollmentAgentRestrictions = await _certAbuseProcessor.ProcessEAPermissions(caName,
                             resolvedSearchResult.Domain, dnsHostName, ret.HostingComputer),
                         RoleSeparationEnabled = _certAbuseProcessor.RoleSeparationEnabled(dnsHostName, caName),
+                        DisabledExtensions = _certAbuseProcessor.DisabledExtensions(dnsHostName, caName),
 
                         // The CASecurity exist in the AD object DACL and in registry of the CA server. We prefer to use the values from registry as they are the ground truth.
                         // If changes are made on the CA server, registry and the AD object is updated. If changes are made directly on the AD object, the CA server registry is not updated.
@@ -755,6 +757,7 @@ namespace Sharphound.Runtime {
                     enrollmentAgentRestrictionsCollected = cARegistryData.EnrollmentAgentRestrictions.Collected;
                     isUserSpecifiesSanEnabledCollected = cARegistryData.IsUserSpecifiesSanEnabled.Collected;
                     roleSeparationEnabledCollected = cARegistryData.RoleSeparationEnabled.Collected;
+                    disabledExtensionsCollected = cARegistryData.DisabledExtensions.Collected;
                     ret.CARegistryData = cARegistryData;
                 } else {
                     _log.LogWarning("The CA name or dnsHostname properties are null.");
@@ -764,6 +767,7 @@ namespace Sharphound.Runtime {
                 ret.Properties.Add("enrollmentagentrestrictionscollected", enrollmentAgentRestrictionsCollected);
                 ret.Properties.Add("isuserspecifiessanenabledcollected", isUserSpecifiesSanEnabledCollected);
                 ret.Properties.Add("roleseparationenabledcollected", roleSeparationEnabledCollected);
+                ret.Properties.Add("disabledextensionscollected", disabledExtensionsCollected);
             }
 
             return ret;
