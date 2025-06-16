@@ -92,7 +92,7 @@ namespace Sharphound.Runtime {
                 case Label.AIACA:
                     return await ProcessAIACA(entry, resolvedSearchResult);
                 case Label.EnterpriseCA:
-                    return await ProcessEnterpriseCA(entry, resolvedSearchResult);
+                    return await ProcessEnterpriseCA(entry, resolvedSearchResult, compStatusChannel);
                 case Label.NTAuthStore:
                     return await ProcessNTAuthStore(entry, resolvedSearchResult);
                 case Label.CertTemplate:
@@ -658,7 +658,8 @@ namespace Sharphound.Runtime {
         }
 
         private async Task<EnterpriseCA> ProcessEnterpriseCA(IDirectoryObject entry,
-            ResolvedSearchResult resolvedSearchResult) {
+            ResolvedSearchResult resolvedSearchResult,
+            Channel<CSVComputerStatus> compStatusChannel) {
             var ret = new EnterpriseCA {
                 ObjectIdentifier = resolvedSearchResult.ObjectId,
                 Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult))
@@ -701,6 +702,13 @@ namespace Sharphound.Runtime {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
                         ret.HostingComputer = sid;
+                        await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus
+                            {
+                                Status = ComputerStatus.Success,
+                                ComputerName = resolvedSearchResult.DisplayName,
+                                Task = nameof(ProcessEnterpriseCA)
+                            },
+                            _cancellationToken);
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
                     }
@@ -723,6 +731,13 @@ namespace Sharphound.Runtime {
                 if (caName != null && dnsHostName != null) {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
+                        await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus
+                        {
+                            Status = ComputerStatus.Success,
+                            ComputerName = resolvedSearchResult.DisplayName,
+                            Task = nameof(ProcessEnterpriseCA)
+                        },
+                        _cancellationToken);
                         ret.HostingComputer = sid;
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
