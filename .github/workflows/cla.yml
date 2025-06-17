@@ -1,7 +1,7 @@
 name: "CLA Assistant"
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited]
   pull_request_target:
     types: [opened,closed,synchronize]
 
@@ -9,15 +9,39 @@ jobs:
   CLAssistant:
     runs-on: ubuntu-latest
     steps:
+      - name: "Organization Members"
+        id: org-members
+        run: |
+          ALL_MEMBERS=""
+          URL="${{ github.api_url }}/orgs/${{ github.repository_owner }}/members?per_page=100"
+
+          while [ -n "$URL" ]; do
+            MEMBERS=$(curl -s -D headers.txt -H "Authorization: Bearer ${{ secrets.READ_MEMBERS_SCOPE }}" "$URL" | jq -r '[.[] | .login] | join(",")')
+            URL=$(grep -i '^Link:' headers.txt | sed -n 's/.*<\(.*\)>; rel="next".*/\1/p' || true)
+            rm -f headers.txt
+
+            if [ -n "$MEMBERS" ]; then
+              if [ -z "$ALL_MEMBERS" ]; then
+                ALL_MEMBERS="$MEMBERS"
+              else
+                ALL_MEMBERS="$ALL_MEMBERS,$MEMBERS"
+              fi
+            fi
+          done
+
+          echo "::add-mask::$ALL_MEMBERS"
+          echo "org_members=$ALL_MEMBERS" >> $GITHUB_OUTPUT
+        
       - name: "CLA Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
         uses: contributor-assistant/github-action@v2.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PERSONAL_ACCESS_TOKEN : ${{ secrets.REPO_SCOPE }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.REPO_SCOPE }}
         with:
-          path-to-signatures: 'signatures.json'
-          path-to-document: 'https://github.com/BloodHoundAD/CLA/blob/main/ICLA.md'
-          branch: 'main'
-          remote-organization-name: BloodHoundAD
-          remote-repository-name:  CLA
+          path-to-signatures: "signatures.json"
+          path-to-document: "https://github.com/SpecterOps/CLA/blob/main/ICLA.md"
+          branch: "main"
+          remote-organization-name: SpecterOps
+          remote-repository-name: CLA
+          allowlist: ${{ steps.org-members.outputs.org_members }}
