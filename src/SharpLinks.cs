@@ -30,8 +30,7 @@ using SharpHoundCommonLib;
 using SharpHoundCommonLib.Processors;
 using Timer = System.Timers.Timer;
 
-namespace Sharphound
-{
+namespace Sharphound {
     internal class SharpLinks : Links<IContext> {
         /// <summary>
         ///     Define methods that SharpHound executes as part of operation pipeline.
@@ -63,7 +62,8 @@ namespace Sharphound
                 if (!context.LDAPUtils.GetDomain(out var d)) {
                     context.Logger.LogCritical("unable to get current domain");
                     context.Flags.IsFaulted = true;
-                } else {
+                }
+                else {
                     context.DomainName = d.Name;
                     context.Logger.LogInformation("Resolved current domain to {Domain}", d.Name);
                 }
@@ -91,7 +91,8 @@ namespace Sharphound
                     }
 
                     File.Delete(filename);
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     context.Logger.LogCritical(e, "unable to write to target directory");
                     context.Flags.IsFaulted = true;
                 }
@@ -140,34 +141,28 @@ namespace Sharphound
             context.Logger.LogTrace("Cache Path: {Path}", path);
 
             Cache cache;
-            if (!File.Exists(path))
-            {
+            if (!File.Exists(path)) {
                 context.Logger.LogTrace("Cache file does not exist");
                 cache = null;
             }
-            else if (context.Flags.InvalidateCache)
-            {
+            else if (context.Flags.InvalidateCache) {
                 context.Logger.LogTrace($"Skipping cache load per option {nameof(Options.RebuildCache)}");
                 cache = null;
             }
-            else
-            {
-                try
-                {
+            else {
+                try {
                     context.Logger.LogTrace("Loading cache from disk");
                     var json = File.ReadAllText(path);
                     cache = JsonConvert.DeserializeObject<Cache>(json, CacheContractResolver.Settings);
                     context.Logger.LogInformation("Loaded cache with stats: {stats}", cache?.GetCacheStats());
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     context.Logger.LogError("Error loading cache: {exception}, creating new", e);
                     cache = null;
                 }
 
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
-                if (CacheNeedsInvalidation(cache, version))
-                {
+                if (CacheNeedsInvalidation(cache, version)) {
                     context.Logger.LogInformation("Old cache found, ignoring");
                     cache = null;
                 }
@@ -178,66 +173,55 @@ namespace Sharphound
             return context;
         }
 
-        private bool CacheNeedsInvalidation(Cache cache, Version version)
-        {
+        private bool CacheNeedsInvalidation(Cache cache, Version version) {
             var threshold = DateTime.Now.Subtract(TimeSpan.FromDays(30));
             if (cache.CacheCreationDate < threshold) {
                 return true;
             }
 
-            if (cache.CacheCreationVersion == null || version > cache.CacheCreationVersion)
-            {
+            if (cache.CacheCreationVersion == null || version > cache.CacheCreationVersion) {
                 return true;
             }
 
             return false;
         }
 
-        public async Task<IContext> GetDomainsForEnumeration(IContext context)
-        {
+        public async Task<IContext> GetDomainsForEnumeration(IContext context) {
             context.Logger.LogTrace("Entering GetDomainsForEnumeration");
-            if (context.Flags.RecurseDomains)
-            {
+            if (context.Flags.RecurseDomains) {
                 context.Logger.LogInformation(
                     "[RecurseDomains] Cross-domain enumeration may result in reduced data quality");
                 context.Domains = await BuildRecursiveDomainList(context).ToArrayAsync();
                 return context;
             }
 
-            if (context.Flags.SearchForest)
-            {
+            if (context.Flags.SearchForest) {
                 context.Logger.LogInformation(
                     "[SearchForest] Cross-domain enumeration may result in reduced data quality");
-                if (!context.LDAPUtils.GetDomain(context.DomainName, out var dObj))
-                {
+                if (!context.LDAPUtils.GetDomain(context.DomainName, out var dObj)) {
                     context.Logger.LogError("Unable to get domain object for SearchForest");
                     context.Flags.IsFaulted = true;
                     return context;
                 }
 
                 Forest forest;
-                try
-                {
+                try {
                     forest = dObj.Forest;
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     context.Logger.LogError("Unable to get forest object for SearchForest: {Message}", e.Message);
                     context.Flags.IsFaulted = true;
                     return context;
                 }
 
                 var temp = new List<EnumerationDomain>();
-                foreach (Domain d in forest.Domains)
-                {
+                foreach (Domain d in forest.Domains) {
                     var entry = d.GetDirectoryEntry().ToDirectoryObject();
-                    if (!entry.TryGetSecurityIdentifier(out var domainSid))
-                    {
+                    if (!entry.TryGetSecurityIdentifier(out var domainSid)) {
                         continue;
                     }
 
-                    temp.Add(new EnumerationDomain()
-                    {
+                    temp.Add(new EnumerationDomain() {
                         Name = d.Name,
                         DomainSid = domainSid
                     });
@@ -249,24 +233,21 @@ namespace Sharphound
                 return context;
             }
 
-            if (!context.LDAPUtils.GetDomain(context.DomainName, out var domainObject))
-            {
+            if (!context.LDAPUtils.GetDomain(context.DomainName, out var domainObject)) {
                 context.Logger.LogError("Unable to resolve a domain to use, manually specify one or check spelling");
                 context.Flags.IsFaulted = true;
                 return context;
             }
 
             var domain = domainObject?.Name ?? context.DomainName;
-            if (domain == null)
-            {
+            if (domain == null) {
                 context.Logger.LogError("Unable to resolve a domain to use, manually specify one or check spelling");
                 context.Flags.IsFaulted = true;
                 return context;
             }
 
             if (domainObject != null && domainObject.GetDirectoryEntry().ToDirectoryObject()
-                    .TryGetSecurityIdentifier(out var sid))
-            {
+                    .TryGetSecurityIdentifier(out var sid)) {
                 context.Domains = new[] {
                     new EnumerationDomain {
                         Name = domain,
@@ -274,8 +255,7 @@ namespace Sharphound
                     }
                 };
             }
-            else
-            {
+            else {
                 context.Domains = new[] {
                     new EnumerationDomain {
                         Name = domain,
