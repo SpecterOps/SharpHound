@@ -140,14 +140,15 @@ namespace Sharphound {
             var path = context.GetCachePath();
             context.Logger.LogTrace("Cache Path: {Path}", path);
 
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
             Cache cache;
             if (!File.Exists(path)) {
                 context.Logger.LogTrace("Cache file does not exist");
-                cache = null;
+                cache = Cache.CreateNewCache(version);
             }
             else if (context.Flags.InvalidateCache) {
                 context.Logger.LogTrace($"Skipping cache load per option {nameof(Options.RebuildCache)}");
-                cache = null;
+                cache = Cache.CreateNewCache(version);
             }
             else {
                 try {
@@ -158,13 +159,12 @@ namespace Sharphound {
                 }
                 catch (Exception e) {
                     context.Logger.LogError("Error loading cache: {exception}, creating new", e);
-                    cache = null;
+                    cache = Cache.CreateNewCache(version);
                 }
 
-                var version = Assembly.GetExecutingAssembly().GetName().Version;
                 if (CacheNeedsInvalidation(cache, version)) {
                     context.Logger.LogInformation("Old cache found, ignoring");
-                    cache = null;
+                    cache = Cache.CreateNewCache(version);
                 }
             }
 
