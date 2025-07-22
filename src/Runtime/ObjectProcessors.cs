@@ -412,8 +412,9 @@ namespace Sharphound.Runtime {
                     .ToArrayAsync(cancellationToken: _cancellationToken);
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps)) {
-                var groupProps = LdapPropertyProcessor.ReadGroupProperties(entry);
-                ret.Properties = ContextUtils.Merge(ret.Properties, groupProps);
+                var groupProps = await _ldapPropertyProcessor.ReadGroupPropertiesAsync(entry, resolvedSearchResult);
+                ret.Properties = ContextUtils.Merge(ret.Properties, groupProps.Props);
+                ret.HasSIDHistory = groupProps.SidHistory;
                 if (_context.Flags.CollectAllProperties) {
                     ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
                         ret.Properties);
