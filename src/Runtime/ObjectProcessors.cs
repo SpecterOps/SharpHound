@@ -134,7 +134,16 @@ namespace Sharphound.Runtime {
             if (entry.IsGMSA()) ret.Properties.Add("gmsa", true);
             ret.DomainSID = resolvedSearchResult.DomainSid;
 
-            if (_methods.HasFlag(CollectionMethod.ACL)) {
+            if (_methods.HasFlag(CollectionMethod.ACL))
+            {
+                // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
+                string adminSdHolderHash = null;
+                if (_context.AdminSDHolderHash != null &&
+                    _context.AdminSDHolderHash.TryGetValue(resolvedSearchResult.Domain, out var hash))
+                {
+                    adminSdHolderHash = hash;
+                }
+
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
@@ -144,6 +153,11 @@ namespace Sharphound.Runtime {
                     .ToArrayAsync(cancellationToken: _cancellationToken)).ToArray();
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+                var isAdminSdHolderProtected = _aclProcessor.IsAdminSDHolderProtected(entry, adminSdHolderHash);
+                if (isAdminSdHolderProtected != null)
+                {
+                    ret.Properties.Add("adminsdholderprotected", isAdminSdHolderProtected);
+                }
             }
 
             if (_methods.HasFlag(CollectionMethod.Group)) {
@@ -197,7 +211,16 @@ namespace Sharphound.Runtime {
             ret.IsDC = resolvedSearchResult.IsDomainController;
             ret.DomainSID = resolvedSearchResult.DomainSid;
 
-            if (_methods.HasFlag(CollectionMethod.ACL)) {
+            if (_methods.HasFlag(CollectionMethod.ACL))
+            {
+                // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
+                string adminSdHolderHash = null;
+                if (_context.AdminSDHolderHash != null &&
+                    _context.AdminSDHolderHash.TryGetValue(resolvedSearchResult.Domain, out var hash))
+                {
+                    adminSdHolderHash = hash;
+                }
+
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
@@ -205,6 +228,11 @@ namespace Sharphound.Runtime {
                 ret.Aces = aces;
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+                var isAdminSdHolderProtected = _aclProcessor.IsAdminSDHolderProtected(entry, adminSdHolderHash);
+                if (isAdminSdHolderProtected != null)
+                {
+                    ret.Properties.Add("adminsdholderprotected", isAdminSdHolderProtected);
+                }
             }
 
             if (_methods.HasFlag(CollectionMethod.Group)) {
@@ -329,7 +357,7 @@ namespace Sharphound.Runtime {
             //     var cred = _context.Flags.DoLocalAdminSessionEnum
             //         ? new NetworkCredential(_context.LocalAdminUsername, _context.LocalAdminPassword, ".")
             //         : null;
-            //     
+            //
             //     var evntProcessor = new EventLogProcessor(
             //         _context.LDAPUtils,
             //         _log,
@@ -378,11 +406,11 @@ namespace Sharphound.Runtime {
                 ret.Properties.Add("ldapavailable", ldapServices.HasLdap);
                 ret.Properties.Add("ldapsavailable", ldapServices.HasLdaps);
                 if (ldapServices.IsChannelBindingDisabled.Collected) {
-                    ret.Properties.Add("ldapsepa", !ldapServices.IsChannelBindingDisabled.Result);    
+                    ret.Properties.Add("ldapsepa", !ldapServices.IsChannelBindingDisabled.Result);
                 }
 
                 if (ldapServices.IsSigningRequired.Collected) {
-                    ret.Properties.Add("ldapsigning", ldapServices.IsSigningRequired.Result);    
+                    ret.Properties.Add("ldapsigning", ldapServices.IsSigningRequired.Result);
                 }
             }
         }
@@ -396,7 +424,16 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
             ret.Properties.Add("samaccountname", entry.GetProperty(LDAPProperties.SAMAccountName));
 
-            if (_methods.HasFlag(CollectionMethod.ACL)) {
+            if (_methods.HasFlag(CollectionMethod.ACL))
+            {
+                // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
+                string adminSdHolderHash = null;
+                if (_context.AdminSDHolderHash != null &&
+                    _context.AdminSDHolderHash.TryGetValue(resolvedSearchResult.Domain, out var hash))
+                {
+                    adminSdHolderHash = hash;
+                }
+
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
@@ -404,6 +441,11 @@ namespace Sharphound.Runtime {
                 ret.Aces = aces;
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+                var isAdminSdHolderProtected = _aclProcessor.IsAdminSDHolderProtected(entry, adminSdHolderHash);
+                if (isAdminSdHolderProtected != null)
+                {
+                    ret.Properties.Add("adminsdholderprotected", isAdminSdHolderProtected);
+                }
             }
 
             if (_methods.HasFlag(CollectionMethod.Group))
