@@ -25,7 +25,10 @@ namespace Sharphound.Producers
         private readonly LdapFilter _query;
         private readonly LdapFilter _queryConfigNC;
 
-        public StealthProducer(IContext context, Channel<IDirectoryObject> channel, Channel<OutputBase> outputChannel) : base(context, channel, outputChannel)
+        public StealthProducer(IContext context,
+            Channel<IDirectoryObject> channel,
+            Channel<OutputBase> outputChannel,
+            Channel<CSVComputerStatus> compStatusChannel) : base(context, channel, outputChannel, compStatusChannel)
         {
             var ldapData = CreateDefaultNCData();
             _query = ldapData.Filter;
@@ -161,6 +164,12 @@ namespace Sharphound.Producers
             foreach (var path in paths.Keys)
             {
                 if (await Context.LDAPUtils.ResolveHostToSid(path, Context.DomainName) is (true, var sid)) {
+                    await CompStatusChannel.Writer.WriteAsync(new CSVComputerStatus
+                    {
+                        Status = ComputerStatus.Success,
+                        ComputerName = path,
+                        Task = "StealthProducer - FindPathTargetSids"
+                    });
                     if (sid != null && sid.StartsWith("S-1-5")) {
                         var searchResult = await Context.LDAPUtils.Query(new LdapQueryParameters() {
                             LDAPFilter = CommonFilters.SpecificSID(sid),

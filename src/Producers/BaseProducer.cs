@@ -24,12 +24,14 @@ namespace Sharphound.Producers
         protected readonly Channel<IDirectoryObject> Channel;
         protected readonly Channel<OutputBase> OutputChannel;
         protected readonly IContext Context;
+        protected readonly Channel<CSVComputerStatus> CompStatusChannel;
 
-        protected BaseProducer(IContext context, Channel<IDirectoryObject> channel, Channel<OutputBase> outputChannel)
+        protected BaseProducer(IContext context, Channel<IDirectoryObject> channel, Channel<OutputBase> outputChannel, Channel<CSVComputerStatus> compStatusChannel)
         {
             Context = context;
             Channel = channel;
             OutputChannel = outputChannel;
+            CompStatusChannel = compStatusChannel;
         }
 
         public abstract Task Produce();

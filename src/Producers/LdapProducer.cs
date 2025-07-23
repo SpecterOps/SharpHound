@@ -12,7 +12,10 @@ namespace Sharphound.Producers
 {
     public class LdapProducer : BaseProducer
     {
-        public LdapProducer(IContext context, Channel<IDirectoryObject> channel, Channel<OutputBase> outputChannel) : base(context, channel, outputChannel)
+        public LdapProducer(IContext context,
+            Channel<IDirectoryObject> channel,
+            Channel<OutputBase> outputChannel,
+            Channel<CSVComputerStatus> compStatusChannel) : base(context, channel, outputChannel, compStatusChannel)
         {
         }
 

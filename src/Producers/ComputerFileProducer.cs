@@ -17,7 +17,10 @@ namespace Sharphound.Producers
     /// </summary>
     internal class ComputerFileProducer : BaseProducer
     {
-        public ComputerFileProducer(IContext context, Channel<IDirectoryObject> channel, Channel<OutputBase> outputChannel) : base(context, channel, outputChannel)
+        public ComputerFileProducer(IContext context, 
+            Channel<IDirectoryObject> channel, 
+            Channel<OutputBase> outputChannel,
+            Channel<CSVComputerStatus> compStatusChannel) : base(context, channel, outputChannel, compStatusChannel)
         {
         }
 
@@ -65,7 +68,14 @@ namespace Sharphound.Producers
                     string sid;
                     if (!computer.StartsWith("S-1-5-21")) {
                         //The computer isn't a SID so try to convert it to one
-                        if (await Context.LDAPUtils.ResolveHostToSid(computer, domainName) is (true, var tempSid)) {
+                        if (await Context.LDAPUtils.ResolveHostToSid(computer, domainName) is (true, var tempSid))
+                        {
+                            await CompStatusChannel.Writer.WriteAsync(new CSVComputerStatus
+                            {
+                                Status = ComputerStatus.Success,
+                                ComputerName = computer,
+                                Task = "ComputerFileProducer - Produce"
+                            }, cancellationToken);
                             sid = tempSid;
                         } else {
                             Context.Logger.LogError("Failed to resolve host {Computer} to SID", computer);
