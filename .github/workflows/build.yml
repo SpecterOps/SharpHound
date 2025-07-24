@@ -35,11 +35,11 @@ jobs:
         run: |
           grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundCommon"' . \
             | while IFS= read -r csproj; do
-                sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundCommon\" Version=\"git-dev\" />|" $csproj
+                sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundCommon\" Version=\"0.0.0-git-dev\" />|" $csproj
               done
           grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' . \
             | while IFS= read -r csproj; do
-                sed -i "s|<PackageReference Include=\"SharpHoundRPC\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
+                sed -i "s|<PackageReference Include=\"SharpHoundRPC\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"0.0.0-git-dev\" />|" $csproj
               done
 
       - name: Restore Dependencies
