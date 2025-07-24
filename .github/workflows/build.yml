@@ -37,7 +37,7 @@ jobs:
             | while IFS= read -r csproj; do
                 sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundCommon\" Version=\"git-dev\" />|" $csproj
               done
-          CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' .) \
+          grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' . \
             | while IFS= read -r csproj; do
                 sed -i "s|<PackageReference Include=\"SharpHoundRPC\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
               done
