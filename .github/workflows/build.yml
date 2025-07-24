@@ -24,12 +24,23 @@ jobs:
     name: Build (${{ matrix.release.type }})
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 5.0.x
+
+      - name: Replace SharpHound library refs with git-dev
+        run: |
+          CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundCommon"' .)
+          for csproj in "${CSPROJ_FILES[@]}"; do
+            sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundCommon\" Version=\"git-dev\" />|" $csproj
+          done
+          CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' .)
+          for csproj in "${CSPROJ_FILES[@]}"; do
+            sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
+          done
 
       - name: Restore Dependencies
         run: dotnet restore
@@ -43,7 +54,7 @@ jobs:
 
       - name: Update Rolling Release
         if: "! startsWith(github.event_name, 'pull_request')"
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Rolling Release (unstable)
           tag_name: rolling
