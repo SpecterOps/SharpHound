@@ -39,7 +39,7 @@ jobs:
           done
           CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' .)
           for csproj in "${CSPROJ_FILES[@]}"; do
-            sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
+            sed -i "s|<PackageReference Include=\"SharpHoundRPC\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
           done
 
       - name: Restore Dependencies
