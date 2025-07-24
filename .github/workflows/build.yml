@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ dev ]
+    branches: [dev]
   pull_request:
-    branches: [ dev ]
+    branches: [dev]
 
 jobs:
   build:
@@ -17,9 +17,9 @@ jobs:
       matrix:
         release:
           - type: Debug
-            suffix: '-debug'
+            suffix: "-debug"
           - type: Release
-            suffix: ''
+            suffix: ""
 
     name: Build (${{ matrix.release.type }})
 
@@ -33,14 +33,14 @@ jobs:
 
       - name: Replace SharpHound library refs with git-dev
         run: |
-          CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundCommon"' .)
-          for csproj in "${CSPROJ_FILES[@]}"; do
-            sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundCommon\" Version=\"git-dev\" />|" $csproj
-          done
-          CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' .)
-          for csproj in "${CSPROJ_FILES[@]}"; do
-            sed -i "s|<PackageReference Include=\"SharpHoundRPC\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
-          done
+          grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundCommon"' . \
+            | while IFS= read -r csproj; do
+                sed -i "s|<PackageReference Include=\"SharpHoundCommon\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundCommon\" Version=\"git-dev\" />|" $csproj
+              done
+          CSPROJ_FILES=$(grep -rl --include="*.csproj" 'PackageReference Include="SharpHoundRPC"' .) \
+            | while IFS= read -r csproj; do
+                sed -i "s|<PackageReference Include=\"SharpHoundRPC\" Version=\"[^\"]*\" />|<PackageReference Include=\"SharpHoundRPC\" Version=\"git-dev\" />|" $csproj
+              done
 
       - name: Restore Dependencies
         run: dotnet restore
