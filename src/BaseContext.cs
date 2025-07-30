@@ -29,6 +29,7 @@ namespace Sharphound
             LDAPUtils = new LdapUtils();
             LDAPUtils.SetLdapConfig(ldapConfig);
             CancellationTokenSource = new CancellationTokenSource();
+            AdminSDHolderHash = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public bool IsFaulted { get; set; }

@@ -120,10 +120,22 @@ namespace Sharphound.Runtime {
             return props;
         }
 
+        // Helper method to handle AdminSDHolder processing
+        private string GetAdminSdHolderHash(string domain)
+        {
+            if (_context.AdminSDHolderHash != null &&
+                _context.AdminSDHolderHash.TryGetValue(domain, out var hash))
+            {
+                return hash;
+            }
+            return null;
+        }
 
         private async Task<User> ProcessUserObject(IDirectoryObject entry,
-            ResolvedSearchResult resolvedSearchResult) {
-            var ret = new User {
+            ResolvedSearchResult resolvedSearchResult)
+        {
+            var ret = new User
+            {
                 ObjectIdentifier = resolvedSearchResult.ObjectId
             };
 
@@ -137,12 +149,7 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.ACL))
             {
                 // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
-                string adminSdHolderHash = null;
-                if (_context.AdminSDHolderHash != null &&
-                    _context.AdminSDHolderHash.TryGetValue(resolvedSearchResult.Domain, out var hash))
-                {
-                    adminSdHolderHash = hash;
-                }
+                var adminSdHolderHash = GetAdminSdHolderHash(resolvedSearchResult.Domain);
 
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
@@ -160,15 +167,18 @@ namespace Sharphound.Runtime {
                 }
             }
 
-            if (_methods.HasFlag(CollectionMethod.Group)) {
+            if (_methods.HasFlag(CollectionMethod.Group))
+            {
                 var pg = entry.GetProperty(LDAPProperties.PrimaryGroupID);
                 ret.PrimaryGroupSID = GroupProcessor.GetPrimaryGroupInfo(pg, resolvedSearchResult.ObjectId);
             }
 
-            if (_methods.HasFlag(CollectionMethod.ObjectProps)) {
+            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            {
                 var userProps = await _ldapPropertyProcessor.ReadUserProperties(entry, resolvedSearchResult);
                 ret.Properties = ContextUtils.Merge(ret.Properties, userProps.Props);
-                if (_context.Flags.CollectAllProperties) {
+                if (_context.Flags.CollectAllProperties)
+                {
                     ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
                         ret.Properties);
                 }
@@ -178,14 +188,17 @@ namespace Sharphound.Runtime {
                 ret.UnconstrainedDelegation = userProps.UnconstrainedDelegation;
             }
 
-            if (_methods.HasFlag(CollectionMethod.SPNTargets)) {
+            if (_methods.HasFlag(CollectionMethod.SPNTargets))
+            {
                 ret.SPNTargets = await _spnProcessor.ReadSPNTargets(resolvedSearchResult, entry)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
             }
 
-            if (_methods.HasFlag(CollectionMethod.Container)) {
+            if (_methods.HasFlag(CollectionMethod.Container))
+            {
                 if (entry.TryGetDistinguishedName(out var dn) &&
-                    await _containerProcessor.GetContainingObject(dn) is (true, var container)) {
+                    await _containerProcessor.GetContainingObject(dn) is (true, var container))
+                {
                     ret.ContainedBy = container;
                 }
             }
@@ -214,12 +227,7 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.ACL))
             {
                 // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
-                string adminSdHolderHash = null;
-                if (_context.AdminSDHolderHash != null &&
-                    _context.AdminSDHolderHash.TryGetValue(resolvedSearchResult.Domain, out var hash))
-                {
-                    adminSdHolderHash = hash;
-                }
+                var adminSdHolderHash = GetAdminSdHolderHash(resolvedSearchResult.Domain);
 
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
@@ -427,12 +435,7 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.ACL))
             {
                 // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
-                string adminSdHolderHash = null;
-                if (_context.AdminSDHolderHash != null &&
-                    _context.AdminSDHolderHash.TryGetValue(resolvedSearchResult.Domain, out var hash))
-                {
-                    adminSdHolderHash = hash;
-                }
+                var adminSdHolderHash = GetAdminSdHolderHash(resolvedSearchResult.Domain);
 
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);

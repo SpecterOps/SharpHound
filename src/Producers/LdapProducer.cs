@@ -82,25 +82,24 @@ namespace Sharphound.Producers
                         if (adminSdHolderResult.IsSuccess)
                         {
                             var searchResult = adminSdHolderResult.Value;
-                            await Channel.Writer.WriteAsync(searchResult, cancellationToken);
+                            // Don't write AdminSDHolder to the channel as it's only needed for its security descriptor
+                            // await Channel.Writer.WriteAsync(searchResult, cancellationToken);
+
 
                             // Create the ACL hash using ACLProcessor
                             if (searchResult.TryGetByteProperty(LDAPProperties.SecurityDescriptor, out var sd))
                             {
-                                // for debugging purposes
-                                var B64 = Convert.ToBase64String(sd);
-                                Context.Logger.LogDebug("{Domain} AdminSDHolder SD Bytes: {Bytes}", domain.Name, B64);
-                                // Create an instance of ACLProcessor
-                                var aclProcessor = new ACLProcessor(Context.LDAPUtils);
+                                // enable for debugging purposes
+                                //var B64 = Convert.ToBase64String(sd);
+                                //Context.Logger.LogDebug("{Domain} AdminSDHolder SD Bytes: {Bytes}", domain.Name, B64);
+
+                                // Create an instance of ACLProcessor - _aclProcessor from ObjectProcessors isn't in this context
+                                 var aclProcessor = new ACLProcessor(Context.LDAPUtils);
 
                                 // Calculate the authoritative SD based on a hash of the implicit ACLs & AclProtected
                                 var authoritativeSd = aclProcessor.CalculateImplicitACLHash(sd);
 
                                 // Store the hashes in the Context for later use
-                                if (Context.AdminSDHolderHash == null)
-                                    Context.AdminSDHolderHash =
-                                        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
                                 Context.AdminSDHolderHash[domain.Name] = authoritativeSd;
 
                                 Context.Logger.LogInformation(
