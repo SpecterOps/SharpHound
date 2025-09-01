@@ -402,7 +402,9 @@ namespace Sharphound.Runtime {
                 DCRegistryData dCRegistryData = new() {
                     CertificateMappingMethods = _dcRegistryProcessor.GetCertificateMappingMethods(apiName),
                     StrongCertificateBindingEnforcement =
-                        _dcRegistryProcessor.GetStrongCertificateBindingEnforcement(apiName)
+                        _dcRegistryProcessor.GetStrongCertificateBindingEnforcement(apiName),
+                    VulnerableNetlogonSecurityDescriptor =
+                        _dcRegistryProcessor.GetVulnerableNetlogonSecurityDescriptor(apiName)
                 };
 
                 ret.DCRegistryData = dCRegistryData;
