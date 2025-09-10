@@ -204,7 +204,8 @@ namespace Sharphound.Runtime
             foreach (var entry in fileList.Where(x => !string.IsNullOrEmpty(x)))
             {
                 var fi = new FileInfo(entry);
-                var zipEntry = new ZipEntry(fi.Name) { DateTime = fi.LastWriteTime, Size = fi.Length, AESKeySize = 256 };
+                var zipEntry = new ZipEntry(fi.Name) { DateTime = fi.LastWriteTime, Size = fi.Length };
+                if (_context.ZipPassword != null) zipEntry.AESKeySize = 256;
                 zipStream.PutNextEntry(zipEntry);
                 
                 using (var fileStream = File.OpenRead(entry))
