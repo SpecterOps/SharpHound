@@ -100,7 +100,7 @@ namespace Sharphound.Runtime
             foreach (var entry in _filenames.Where(x => !string.IsNullOrEmpty(x)))
             {
                 var fi = new FileInfo(entry);
-                var zipEntry = new ZipEntry(fi.Name) { DateTime = fi.LastWriteTime, Size = fi.Length };
+                var zipEntry = new ZipEntry(fi.Name) { DateTime = fi.LastWriteTime, Size = fi.Length, AESKeySize = 256 };
                 zipStream.PutNextEntry(zipEntry);
 
                 var buffer = new byte[4096];
