@@ -447,6 +447,7 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.ACL)) {
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
+                ret.Aces = aces;
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
