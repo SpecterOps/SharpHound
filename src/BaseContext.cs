@@ -29,7 +29,6 @@ namespace Sharphound
             LDAPUtils = new LdapUtils();
             LDAPUtils.SetLdapConfig(ldapConfig);
             CancellationTokenSource = new CancellationTokenSource();
-            AdminSDHolderHash = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public bool IsFaulted { get; set; }
@@ -122,11 +121,6 @@ namespace Sharphound
         public string LocalAdminUsername { get; set; }
         public string LocalAdminPassword { get; set; }
         public bool LocalAdminSessionEnum { get; set; }
-
-        /// <summary>
-        /// Dictionary mapping domain names to their AdminSDHolder authoritative security descriptor hash
-        /// </summary>
-        public Dictionary<string, string> AdminSDHolderHash { get; set; }
 
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~Context()
