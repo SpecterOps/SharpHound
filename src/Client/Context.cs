@@ -76,5 +76,10 @@ namespace Sharphound.Client
         EnumerationDomain[] Domains { get; set; }
         void UpdateLoopTime();
         public HashSet<string> CollectedDomainSids { get; }
+
+        /// <summary>
+        /// Dictionary mapping domain names to their AdminSDHolder authoritative security descriptor hash
+        /// </summary>
+        Dictionary<string, string> AdminSDHolderHash { get; set; }
     }
 }
