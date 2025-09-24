@@ -1,10 +1,9 @@
 name: Build
 
 on:
-  push:
-    branches: [ dev ]
   pull_request:
-    branches: [ dev ]
+    branches: [ 2.X ]
+    types: [ opened, synchronize ]
 
 jobs:
   build:
@@ -24,10 +23,10 @@ jobs:
     name: Build (${{ matrix.release.type }})
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 5.0.x
 
@@ -43,7 +42,7 @@ jobs:
 
       - name: Update Rolling Release
         if: "! startsWith(github.event_name, 'pull_request')"
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Rolling Release (unstable)
           tag_name: rolling
