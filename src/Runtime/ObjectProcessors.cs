@@ -264,7 +264,8 @@ namespace Sharphound.Runtime {
                     await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
                         Status = sessionResult.Collected ? StatusSuccess : sessionResult.FailureReason,
                         Task = "NetSessionEnum",
-                        ComputerName = resolvedSearchResult.DisplayName
+                        ComputerName = resolvedSearchResult.DisplayName,
+                        ObjectId = resolvedSearchResult.ObjectId,
                     }, _cancellationToken);
             }
 
@@ -279,7 +280,8 @@ namespace Sharphound.Runtime {
                     await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
                         Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
                         Task = "NetWkstaUserEnum",
-                        ComputerName = resolvedSearchResult.DisplayName
+                        ComputerName = resolvedSearchResult.DisplayName,
+                        ObjectId = resolvedSearchResult.ObjectId,
                     }, _cancellationToken);
 
                 if (!_context.Flags.NoRegistryLoggedOn) {
@@ -291,7 +293,8 @@ namespace Sharphound.Runtime {
                         await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
                             Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
                             Task = "RegistrySessions",
-                            ComputerName = resolvedSearchResult.DisplayName
+                            ComputerName = resolvedSearchResult.DisplayName,
+                            ObjectId = resolvedSearchResult.ObjectId,
                         }, _cancellationToken);
                 }
             }
@@ -703,7 +706,8 @@ namespace Sharphound.Runtime {
                             {
                                 Status = ComputerStatus.Success,
                                 ComputerName = resolvedSearchResult.DisplayName,
-                                Task = nameof(ProcessEnterpriseCA)
+                                Task = nameof(ProcessEnterpriseCA),
+                                ObjectId = resolvedSearchResult.ObjectId,
                             },
                             _cancellationToken);
                     } else {
@@ -732,7 +736,8 @@ namespace Sharphound.Runtime {
                         {
                             Status = ComputerStatus.Success,
                             ComputerName = resolvedSearchResult.DisplayName,
-                            Task = nameof(ProcessEnterpriseCA)
+                            Task = nameof(ProcessEnterpriseCA),
+                            ObjectId = sid,
                         },
                         _cancellationToken);
                         ret.HostingComputer = sid;
