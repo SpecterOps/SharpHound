@@ -57,7 +57,7 @@ namespace Sharphound.Writers
             _streamWriter = new StreamWriter(
                 new FileStream(filename, exists ? FileMode.Truncate : FileMode.Create, FileAccess.ReadWrite),
                 new UTF8Encoding(false));
-            _streamWriter.WriteLine("ComputerName,Task,Status");
+            _streamWriter.WriteLine("ComputerName,Task,Status,ObjectID");
         }
 
         private void CloseLog()
