@@ -289,7 +289,7 @@ namespace Sharphound.Runtime {
                     ret.RegistrySessions = registrySessionResult;
                     if (_context.Flags.DumpComputerStatus)
                         await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
-                            Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
+                            Status = registrySessionResult.Collected ? StatusSuccess : registrySessionResult.FailureReason,
                             Task = "RegistrySessions",
                             ComputerName = resolvedSearchResult.DisplayName
                         }, _cancellationToken);
