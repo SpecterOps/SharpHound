@@ -45,6 +45,8 @@ namespace Sharphound.Writers
 
         internal override async Task FlushWriter()
         {
+            if (_streamWriter == null) return;
+
             await WriteData();
             await _streamWriter.FlushAsync();
             CloseLog();
