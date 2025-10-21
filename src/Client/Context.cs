@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -80,6 +81,6 @@ namespace Sharphound.Client
         /// <summary>
         /// Dictionary mapping domain names to their AdminSDHolder authoritative security descriptor hash
         /// </summary>
-        Dictionary<string, string> AdminSDHolderHash { get; set; }
+        ConcurrentDictionary<string, string> AdminSDHolderHash { get; set; }
     }
 }
