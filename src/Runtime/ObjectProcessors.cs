@@ -325,7 +325,7 @@ namespace Sharphound.Runtime {
                     ret.RegistrySessions = registrySessionResult;
                     if (_context.Flags.DumpComputerStatus)
                         await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
-                            Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
+                            Status = registrySessionResult.Collected ? StatusSuccess : registrySessionResult.FailureReason,
                             Task = "RegistrySessions",
                             ComputerName = resolvedSearchResult.DisplayName
                         }, _cancellationToken);
@@ -494,6 +494,7 @@ namespace Sharphound.Runtime {
             if (_methods.HasFlag(CollectionMethod.ACL)) {
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
+                ret.Aces = aces;
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
