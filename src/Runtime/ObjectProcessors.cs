@@ -300,7 +300,8 @@ namespace Sharphound.Runtime {
                     await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
                         Status = sessionResult.Collected ? StatusSuccess : sessionResult.FailureReason,
                         Task = "NetSessionEnum",
-                        ComputerName = resolvedSearchResult.DisplayName
+                        ComputerName = resolvedSearchResult.DisplayName,
+                        ObjectId = resolvedSearchResult.ObjectId,
                     }, _cancellationToken);
             }
 
@@ -315,7 +316,8 @@ namespace Sharphound.Runtime {
                     await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
                         Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
                         Task = "NetWkstaUserEnum",
-                        ComputerName = resolvedSearchResult.DisplayName
+                        ComputerName = resolvedSearchResult.DisplayName,
+                        ObjectId = resolvedSearchResult.ObjectId,
                     }, _cancellationToken);
 
                 if (!_context.Flags.NoRegistryLoggedOn) {
@@ -327,7 +329,8 @@ namespace Sharphound.Runtime {
                         await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
                             Status = registrySessionResult.Collected ? StatusSuccess : registrySessionResult.FailureReason,
                             Task = "RegistrySessions",
-                            ComputerName = resolvedSearchResult.DisplayName
+                            ComputerName = resolvedSearchResult.DisplayName,
+                            ObjectId = resolvedSearchResult.ObjectId,
                         }, _cancellationToken);
                 }
             }
@@ -356,7 +359,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.SmbInfo)) {
-                ret.SmbInfo = await _smbProcessor.Scan(apiName);
+                ret.SmbInfo = await _smbProcessor.Scan(apiName, resolvedSearchResult.DomainSid);
             }
 
             // Re-introduce this when we're ready for Event Log collection
@@ -412,7 +415,7 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.LdapServices)) {
                 var dcLdapProcessor = new DCLdapProcessor(_context.PortScanTimeout, apiName, _log);
-                var ldapServices = await dcLdapProcessor.Scan(resolvedSearchResult.DisplayName);
+                var ldapServices = await dcLdapProcessor.Scan(resolvedSearchResult.DisplayName, resolvedSearchResult.ObjectId);
                 ret.Properties.Add("ldapavailable", ldapServices.HasLdap);
                 ret.Properties.Add("ldapsavailable", ldapServices.HasLdaps);
                 if (ldapServices.IsChannelBindingDisabled.Collected) {
@@ -750,7 +753,8 @@ namespace Sharphound.Runtime {
                             {
                                 Status = ComputerStatus.Success,
                                 ComputerName = resolvedSearchResult.DisplayName,
-                                Task = nameof(ProcessEnterpriseCA)
+                                Task = nameof(ProcessEnterpriseCA),
+                                ObjectId = resolvedSearchResult.ObjectId,
                             },
                             _cancellationToken);
                     } else {
@@ -779,7 +783,8 @@ namespace Sharphound.Runtime {
                         {
                             Status = ComputerStatus.Success,
                             ComputerName = resolvedSearchResult.DisplayName,
-                            Task = nameof(ProcessEnterpriseCA)
+                            Task = nameof(ProcessEnterpriseCA),
+                            ObjectId = sid,
                         },
                         _cancellationToken);
                         ret.HostingComputer = sid;
