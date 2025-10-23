@@ -100,7 +100,10 @@ namespace Sharphound.Producers
                                 var authoritativeSd = aclProcessor.CalculateImplicitACLHash(sd);
 
                                 // Store the hashes in the Context for later use
-                                Context.AdminSDHolderHash[domain.Name] = authoritativeSd;
+                                Context.AdminSDHolderHash.AddOrUpdate(
+                                    domain.Name,
+                                    _ => authoritativeSd,
+                                    (_, _) => authoritativeSd);
 
                                 Context.Logger.LogInformation(
                                     "AdminSDHolder ACL hash {Hash} calculated for {Domain}.", authoritativeSd,
