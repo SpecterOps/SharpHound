@@ -35,7 +35,7 @@ dotnet build
 # CLI Arguments
 The listing below details the CLI arguments SharpHound supports. Additional details about these options can be found in the [BloodHound CE Collection documentation](https://bloodhound.specterops.io/collect-data/ce-collection/sharphound-flags).
 ```
-  -c, --collectionmethods    (Default: Default) Collection Methods: Container, Group, LocalGroup, GPOLocalGroup,
+  -c, --collectionmethods    (Default: Default) Collection Methods: Container, Group, LocalGroup, GPOLocalGroup, GPOUserRights
                              Session, LoggedOn, ObjectProps, ACL, ComputerOnly, Trusts, Default, RDP, DCOM, DCOnly, UserRights, 
                              CARegistry, DCRegistry, CertServices, WebClientService, NTLMRegistry,SMBInfo,LdapServices
 
