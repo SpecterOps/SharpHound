@@ -39,6 +39,7 @@ namespace Sharphound.Runtime {
         private readonly SPNProcessors _spnProcessor;
         private readonly WebClientServiceProcessor _webClientProcessor;
         private readonly SmbProcessor _smbProcessor;
+        private readonly SiteProcessor _siteProcessor;
         private readonly ConcurrentDictionary<string, RegistryProcessor> _registryProcessorMap = new();
         public ObjectProcessors(IContext context, ILogger log) {
             _context = context;
@@ -60,6 +61,7 @@ namespace Sharphound.Runtime {
             _localGroupProcessor = new LocalGroupProcessor(context.LDAPUtils);
             _webClientProcessor = new WebClientServiceProcessor(log);
             _smbProcessor = new SmbProcessor(context.PortScanTimeout);
+            _siteProcessor = new SiteProcessor(context.LDAPUtils);
             _methods = context.ResolvedCollectionMethods;
             _cancellationToken = context.CancellationTokenSource.Token;
             _log = log;
@@ -95,6 +97,12 @@ namespace Sharphound.Runtime {
                     return await ProcessCertTemplate(entry, resolvedSearchResult);
                 case Label.IssuancePolicy:
                     return await ProcessIssuancePolicy(entry, resolvedSearchResult);
+                case Label.Site:
+                    return await ProcessSiteObject(entry, resolvedSearchResult);
+                case Label.SiteServer:
+                    return await ProcessSiteServerObject(entry, resolvedSearchResult);
+                case Label.SiteSubnet:
+                    return await ProcessSiteSubnetObject(entry, resolvedSearchResult);
                 case Label.Base:
                     return null;
                 default:
@@ -920,6 +928,126 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.Container) || _methods.HasFlag(CollectionMethod.CertServices)) {
                 if (await _containerProcessor.GetContainingObject(entry) is (true, var container)) {
+                    ret.ContainedBy = container;
+                }
+            }
+
+            return ret;
+        }
+
+        private async Task<Site> ProcessSiteObject(IDirectoryObject entry,
+            ResolvedSearchResult resolvedSearchResult)
+        {
+            var ret = new Site
+            {
+                ObjectIdentifier = resolvedSearchResult.ObjectId
+            };
+
+            ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
+
+            if (_methods.HasFlag(CollectionMethod.ACL))
+            {
+                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
+                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
+                ret.Aces = aces;
+                ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
+                ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+            }
+
+            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            {
+                ret.Properties =
+                    ContextUtils.Merge(LdapPropertyProcessor.ReadSiteProperties(entry), ret.Properties);
+                if (_context.Flags.CollectAllProperties)
+                {
+                    ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
+                        ret.Properties);
+                }
+            }
+
+            ret.Links = await _siteProcessor.ReadSiteGPLinks(resolvedSearchResult, entry).ToArrayAsync();
+
+            return ret;
+        }
+
+        private async Task<SiteServer> ProcessSiteServerObject(IDirectoryObject entry,
+            ResolvedSearchResult resolvedSearchResult)
+        {
+            var ret = new SiteServer
+            {
+                ObjectIdentifier = resolvedSearchResult.ObjectId
+            };
+
+            ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
+
+            
+            if (await _siteProcessor.GetContainingSiteForServer(entry) is (true, var container))
+            {
+                ret.ContainedBy = container;
+            }
+            
+            if (_methods.HasFlag(CollectionMethod.ACL))
+            {
+                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
+                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
+                ret.Aces = aces;
+                ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
+                ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+            }
+
+            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            {
+                ret.Properties =
+                    ContextUtils.Merge(LdapPropertyProcessor.ReadSiteServerProperties(entry), ret.Properties);
+                if (_context.Flags.CollectAllProperties)
+                {
+                    ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
+                        ret.Properties);
+                }
+            }
+
+            return ret;
+        }
+
+        private async Task<SiteSubnet> ProcessSiteSubnetObject(IDirectoryObject entry,
+            ResolvedSearchResult resolvedSearchResult)
+        {
+            var ret = new SiteSubnet
+            {
+                ObjectIdentifier = resolvedSearchResult.ObjectId
+            };
+
+            ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
+
+            if (_methods.HasFlag(CollectionMethod.ACL))
+            {
+                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
+                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
+                ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
+                ret.Aces = aces;
+                ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
+                ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+            }
+            
+            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            {
+                ret.Properties =
+                    ContextUtils.Merge(LdapPropertyProcessor.ReadSiteSubnetProperties(entry), ret.Properties);
+                if (_context.Flags.CollectAllProperties)
+                {
+                    ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
+                        ret.Properties);
+                }
+
+                // Can only deduce containing site for a subnet if we read the object properties, including siteObject
+
+                if (await _siteProcessor.GetContainingSiteForSubnet(ret.Properties) is (true, var container))
+                {
                     ret.ContainedBy = container;
                 }
             }

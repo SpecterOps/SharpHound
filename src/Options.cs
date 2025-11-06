@@ -208,6 +208,7 @@ namespace Sharphound
                     CollectionMethodOptions.LdapServices => CollectionMethod.LdapServices,
                     CollectionMethodOptions.SmbInfo => CollectionMethod.SmbInfo,
                     CollectionMethodOptions.NTLMRegistry => CollectionMethod.NTLMRegistry,
+                    CollectionMethodOptions.Site => CollectionMethod.Site,
                     // Re-introduce this when we're ready for Event Log collection
                     // CollectionMethodOptions.EventLogs => CollectionMethod.EventLogs,
                     CollectionMethodOptions.All => CollectionMethod.All,
