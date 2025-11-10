@@ -31,6 +31,7 @@
         LdapServices,
         SmbInfo,
         NTLMRegistry,
+        Backup,
         // Re-introduce this when we're ready for Event Log collection
         // EventLogs,
         All

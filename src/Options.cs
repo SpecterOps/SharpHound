@@ -14,7 +14,7 @@ namespace Sharphound
         // Options that affect what is collected
         [Option('c', "collectionmethods", Default = new[] { "Default" },
             HelpText =
-                "Collection Methods: Group, LocalGroup, LocalAdmin, RDP, DCOM, PSRemote, Session, Trusts, ACL, Container, ComputerOnly, GPOLocalGroup, LoggedOn, ObjectProps, SPNTargets, UserRights, Default, DCOnly, CARegistry, DCRegistry, CertServices, WebClientService, LdapServices, SmbInfo, NTLMRegistry, All")]
+                "Collection Methods: Group, LocalGroup, LocalAdmin, RDP, DCOM, PSRemote, Backup, Session, Trusts, ACL, Container, ComputerOnly, GPOLocalGroup, LoggedOn, ObjectProps, SPNTargets, UserRights, Default, DCOnly, CARegistry, DCRegistry, CertServices, WebClientService, LdapServices, SmbInfo, NTLMRegistry, All")]
         public IEnumerable<string> CollectionMethods { get; set; }
 
         [Option('d', "domain", Default = null, HelpText = "Specify domain to enumerate")]
@@ -193,6 +193,7 @@ namespace Sharphound
                     CollectionMethodOptions.DCOM => CollectionMethod.DCOM,
                     CollectionMethodOptions.LocalAdmin => CollectionMethod.LocalAdmin,
                     CollectionMethodOptions.PSRemote => CollectionMethod.PSRemote,
+                    CollectionMethodOptions.Backup => CollectionMethod.Backup,
                     CollectionMethodOptions.SPNTargets => CollectionMethod.SPNTargets,
                     CollectionMethodOptions.Container => CollectionMethod.Container,
                     CollectionMethodOptions.GPOLocalGroup => CollectionMethod.GPOLocalGroup,
@@ -247,6 +248,13 @@ namespace Sharphound
                     localGroupRemoved = true;
                     resolved ^= CollectionMethod.PSRemote;
                     updates.Add("[-] Removed PSRemote Collection");
+                }
+
+                if ((resolved & CollectionMethod.Backup) != 0)
+                {
+                    localGroupRemoved = true;
+                    resolved ^= CollectionMethod.Backup;
+                    updates.Add("[-] Removed Backup Collection");
                 }
 
                 if ((resolved & CollectionMethod.LocalAdmin) != 0)

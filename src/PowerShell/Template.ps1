@@ -20,7 +20,8 @@
             LocalAdmin - Collect local admin users for computers
             RDP - Collect remote desktop users for computers
             DCOM - Collect distributed COM users for computers
-            PSRemote - Collected members of the Remote Management Users group for computers
+            PSRemote - Collect members of the Remote Management Users group for computers
+            Backup - Collect local Backup Operators group for computers
             Session - Collect session information for computers
             Trusts - Enumerate domain trust data
             ACL - Collect ACL (Access Control List) data

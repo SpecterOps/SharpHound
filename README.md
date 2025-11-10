@@ -37,7 +37,7 @@ The listing below details the CLI arguments SharpHound supports. Additional deta
 ```
   -c, --collectionmethods    (Default: Default) Collection Methods: Container, Group, LocalGroup, GPOLocalGroup,
                              Session, LoggedOn, ObjectProps, ACL, ComputerOnly, Trusts, Default, RDP, DCOM, DCOnly, UserRights, 
-                             CARegistry, DCRegistry, CertServices, WebClientService, NTLMRegistry,SMBInfo,LdapServices
+                             CARegistry, DCRegistry, CertServices, WebClientService, NTLMRegistry, SMBInfo, LdapServices, Backup
 
   -d, --domain               Specify domain to enumerate
 
