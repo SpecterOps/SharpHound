@@ -7,12 +7,16 @@ using Sharphound.Client;
 using SharpHoundCommonLib;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
+using SharpHoundCommonLib.Processors;
 
 namespace Sharphound.Producers
 {
     public class LdapProducer : BaseProducer
     {
-        public LdapProducer(IContext context, Channel<IDirectoryObject> channel, Channel<OutputBase> outputChannel) : base(context, channel, outputChannel)
+        public LdapProducer(IContext context,
+            Channel<IDirectoryObject> channel,
+            Channel<OutputBase> outputChannel,
+            Channel<CSVComputerStatus> compStatusChannel) : base(context, channel, outputChannel, compStatusChannel)
         {
         }
 
@@ -51,29 +55,104 @@ namespace Sharphound.Producers
 
                 Context.CollectedDomainSids.Add(domain.DomainSid);
 
-                foreach (var filter in ldapData.Filter.GetFilterList()) {
-                    foreach (var partitionedFilter in GetPartitionedFilter(filter)) {
-                        await foreach (var result in Context.LDAPUtils.PagedQuery(new LdapQueryParameters() {
-                                           LDAPFilter = partitionedFilter,
-                                           Attributes = ldapData.Attributes,
-                                           DomainName = domain.Name,
-                                           SearchBase = Context.SearchBase,
-                                           IncludeSecurityDescriptor = Context.ResolvedCollectionMethods.HasFlag(CollectionMethod.ACL)
-                                       }, cancellationToken)){
-                            if (!result.IsSuccess) {
+                // Only collect AdminSDHolder data if ACL collection is enabled
+                if (Context.ResolvedCollectionMethods.HasFlag(CollectionMethod.ACL))
+                {
+                    Context.Logger.LogInformation("Collecting AdminSDHolder data for {Domain}", domain.Name);
+                    if (await Context.LDAPUtils.GetNamingContextPath(domain.Name, NamingContext.Default) is
+                        (true, var domainDN))
+                    {
+                        // Now use the retrieved distinguished name for the search base
+                        var adminSdHolderParameters = new LdapQueryParameters()
+                        {
+                            LDAPFilter = "(objectClass=*)",
+                            Attributes = new[]
+                                { "nTSecurityDescriptor", "distinguishedName", "objectClass", "objectSid" },
+                            DomainName = domain.Name,
+                            SearchBase = $"cn=adminsdholder,cn=system,{domainDN}",
+                            IncludeSecurityDescriptor = true
+                        };
+
+                        // Query and get the first result
+                        var adminSdHolderResult = await Context.LDAPUtils
+                            .Query(adminSdHolderParameters, cancellationToken)
+                            .FirstOrDefaultAsync(LdapResult<IDirectoryObject>.Fail());
+
+
+                        if (adminSdHolderResult.IsSuccess)
+                        {
+                            var searchResult = adminSdHolderResult.Value;
+                            // Don't write AdminSDHolder to the channel as it's only needed for its security descriptor
+                            // await Channel.Writer.WriteAsync(searchResult, cancellationToken);
+
+
+                            // Create the ACL hash using ACLProcessor
+                            if (searchResult.TryGetByteProperty(LDAPProperties.SecurityDescriptor, out var sd))
+                            {
+                                // enable for debugging purposes
+                                //var B64 = Convert.ToBase64String(sd);
+                                //Context.Logger.LogDebug("{Domain} AdminSDHolder SD Bytes: {Bytes}", domain.Name, B64);
+
+                                // Create an instance of ACLProcessor - _aclProcessor from ObjectProcessors isn't in this context
+                                 var aclProcessor = new ACLProcessor(Context.LDAPUtils);
+
+                                // Calculate the authoritative SD based on a hash of the implicit ACLs & AclProtected
+                                var authoritativeSd = aclProcessor.CalculateImplicitACLHash(sd);
+
+                                // Store the hashes in the Context for later use
+                                Context.AdminSDHolderHash.AddOrUpdate(
+                                    domain.Name,
+                                    _ => authoritativeSd,
+                                    (_, _) => authoritativeSd);
+
+                                Context.Logger.LogInformation(
+                                    "AdminSDHolder ACL hash {Hash} calculated for {Domain}.", authoritativeSd,
+                                    domain.Name);
+                            }
+
+                            Context.Logger.LogTrace("AdminSDHolder data collected for {Domain}", domain.Name);
+                        }
+                        else
+                        {
+                            Context.Logger.LogWarning("Failed to collect AdminSDHolder data for {Domain}: {Message}",
+                                domain.Name, adminSdHolderResult.Error);
+                        }
+                    }
+                    else
+                    {
+                        Context.Logger.LogWarning("Failed to get distinguished name for domain {Domain}", domain.Name);
+                    }
+                }
+
+                foreach (var filter in ldapData.Filter.GetFilterList())
+                {
+                    foreach (var partitionedFilter in GetPartitionedFilter(filter))
+                    {
+                        await foreach (var result in Context.LDAPUtils.PagedQuery(new LdapQueryParameters()
+                        {
+                            LDAPFilter = partitionedFilter,
+                            Attributes = ldapData.Attributes,
+                            DomainName = domain.Name,
+                            SearchBase = Context.SearchBase,
+                            IncludeSecurityDescriptor = Context.ResolvedCollectionMethods.HasFlag(CollectionMethod.ACL)
+                        }, cancellationToken))
+                        {
+                            if (!result.IsSuccess)
+                            {
                                 Context.Logger.LogError("Error during main ldap query:{Message} ({Code})", result.Error, result.ErrorCode);
                                 break;
                             }
 
                             var searchResult = result.Value;
 
-                            if (searchResult.TryGetDistinguishedName(out var distinguishedName)) {
+                            if (searchResult.TryGetDistinguishedName(out var distinguishedName))
+                            {
                                 var lower = distinguishedName.ToLower();
                                 if (lower.Contains("cn=domainupdates,cn=system"))
                                     continue;
                                 if (lower.Contains("cn=policies,cn=system") && (lower.StartsWith("cn=user") || lower.StartsWith("cn=machine")))
                                     continue;
-                        
+
                                 await Channel.Writer.WriteAsync(searchResult, cancellationToken);
                                 Context.Logger.LogTrace("Producer wrote {DistinguishedName} to channel", distinguishedName);
                             }
@@ -82,7 +161,7 @@ namespace Sharphound.Producers
                 }
             }
         }
-        
+
         private IEnumerable<string> GetPartitionedFilter(string originalFilter) {
             if (Context.Flags.ParititonLdapQueries) {
                 for (var i = 0; i < 256; i++) {
@@ -114,7 +193,7 @@ namespace Sharphound.Producers
                     if (!configurationNCsCollected.Add(path)) {
                         continue;
                     }
-                    
+
                     Context.Logger.LogInformation("Beginning LDAP search for {Domain} Configuration NC", domain.Name);
                     foreach (var filter in configNcData.Filter.GetFilterList()) {
                         await foreach (var result in Context.LDAPUtils.PagedQuery(new LdapQueryParameters() {

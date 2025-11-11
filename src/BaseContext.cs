@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -29,6 +30,7 @@ namespace Sharphound
             LDAPUtils = new LdapUtils();
             LDAPUtils.SetLdapConfig(ldapConfig);
             CancellationTokenSource = new CancellationTokenSource();
+            AdminSDHolderHash = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public bool IsFaulted { get; set; }
@@ -121,6 +123,11 @@ namespace Sharphound
         public string LocalAdminUsername { get; set; }
         public string LocalAdminPassword { get; set; }
         public bool LocalAdminSessionEnum { get; set; }
+
+        /// <summary>
+        /// Dictionary mapping domain names to their AdminSDHolder authoritative security descriptor hash
+        /// </summary>
+        public ConcurrentDictionary<string, string> AdminSDHolderHash { get; set; }
 
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~Context()

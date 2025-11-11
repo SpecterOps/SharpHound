@@ -39,7 +39,7 @@ jobs:
 
       - name: Zip
         if: "! startsWith(github.event_name, 'pull_request')"
-        run: 7z a -tzip -mx9 SharpHound${{ matrix.release.suffix }}.zip $PWD/bin/${{ matrix.release.type }}/net462/*
+        run: 7z a -tzip -mx9 SharpHound${{ matrix.release.suffix }}.zip $PWD/bin/${{ matrix.release.type }}/net472/*
 
       - name: Update Rolling Release
         if: "! startsWith(github.event_name, 'pull_request')"

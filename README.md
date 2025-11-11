@@ -1,12 +1,16 @@
 # SharpHound
 
-![GitHub all releases](https://img.shields.io/github/downloads/BloodHoundAD/SharpHound/total)
+![GitHub all releases](https://img.shields.io/github/downloads/SpecterOps/SharpHound/total)
 
 ## Get SharpHound
 
-The latest build of SharpHound will always be found [here](https://github.com/BloodHoundAD/SharpHound/releases).
+The latest build of SharpHound will always be found [here](https://github.com/SpecterOps/SharpHound/releases).
 
-To determine the SharpHound version compatible with a deployed BloodHound CE instance, login to BloodHound CE's web UI and click on ⚙️ (Settings) → Download Collectors. Then, click either the "Download SharpHound" button in the user interface or use the displayed SharpHound version to download the appropriate [release binary](https://github.com/BloodHoundAD/SharpHound/releases). Alternatively, compile a SharpHound binary from the corresponding release commit.
+To determine the SharpHound version compatible with a deployed BloodHound CE instance, login to BloodHound CE's web UI and click on ⚙️ (Settings) → Download Collectors. Then, click either the "Download SharpHound" button in the user interface or use the displayed SharpHound version to download the appropriate [release binary](https://github.com/SpecterOps/SharpHound/releases). Alternatively, compile a SharpHound binary from the corresponding release commit.
+
+## Documentation
+
+Please refer to the [SharpHound section](https://bloodhound.specterops.io/collect-data/ce-collection/sharphound), part of the [BloodHound Community Edition documentation](https://bloodhound.specterops.io/home). 
 
 ## Compile Instructions
 
@@ -29,10 +33,11 @@ dotnet build
 ```
 
 # CLI Arguments
-The listing below details the CLI arguments SharpHound supports. Additional details about these options can be found in the [BloodHound CE Collection documentation](https://support.bloodhoundenterprise.io/hc/en-us/articles/17481375424795-All-SharpHound-Community-Edition-Flags-Explained).
+The listing below details the CLI arguments SharpHound supports. Additional details about these options can be found in the [BloodHound CE Collection documentation](https://bloodhound.specterops.io/collect-data/ce-collection/sharphound-flags).
 ```
   -c, --collectionmethods    (Default: Default) Collection Methods: Container, Group, LocalGroup, GPOLocalGroup,
-                             Session, LoggedOn, ObjectProps, ACL, ComputerOnly, Trusts, Default, RDP, DCOM, DCOnly, UserRights, CARegistry, DCRegistry, CertServices
+                             Session, LoggedOn, ObjectProps, ACL, ComputerOnly, Trusts, Default, RDP, DCOM, DCOnly, UserRights, 
+                             CARegistry, DCRegistry, CertServices, WebClientService, NTLMRegistry,SMBInfo,LdapServices
 
   -d, --domain               Specify domain to enumerate
 

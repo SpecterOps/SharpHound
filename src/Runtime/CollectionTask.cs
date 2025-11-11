@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -6,6 +9,7 @@ using Sharphound.Client;
 using Sharphound.Producers;
 using Sharphound.Writers;
 using SharpHoundCommonLib;
+using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
 
 namespace Sharphound.Runtime
@@ -50,19 +54,18 @@ namespace Sharphound.Runtime
             _outputWriter = new OutputWriter(context, _outputChannel);
 
             if (context.Flags.Stealth)
-                _producer = new StealthProducer(context, _ldapChannel, _outputChannel);
+                _producer = new StealthProducer(context, _ldapChannel, _outputChannel, _compStatusChannel);
             else if (context.ComputerFile != null)
-                _producer = new ComputerFileProducer(context, _ldapChannel, _outputChannel);
+                _producer = new ComputerFileProducer(context, _ldapChannel, _outputChannel, _compStatusChannel);
             else
-                _producer = new LdapProducer(context, _ldapChannel, _outputChannel);
+                _producer = new LdapProducer(context, _ldapChannel, _outputChannel, _compStatusChannel);
         }
 
         internal async Task<string> StartCollection()
         {
             for (var i = 0; i < _context.Threads; i++)
             {
-                var consumer = LDAPConsumer.ConsumeSearchResults(_ldapChannel, _compStatusChannel, _outputChannel,
-                    _context, i);
+                var consumer = ConsumeSearchResults();
                 _taskPool.Add(consumer);
             }
 
@@ -104,6 +107,48 @@ namespace Sharphound.Runtime
             if (compStatusTask != null) await compStatusTask;
 
             return zipFile;
+        }
+
+        internal async Task ConsumeSearchResults()
+        {
+            var log = _context.Logger;
+            var processor = new ObjectProcessors(_context, log);
+            var watch = new Stopwatch();
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            
+            await foreach (var item in _ldapChannel.Reader.ReadAllAsync())
+                try
+                {
+                    if (await LdapUtils.ResolveSearchResult(item, _context.LDAPUtils) is not (true, var res) || res == null || res.ObjectType == Label.Base)
+                    {
+                        if (item.TryGetDistinguishedName(out var dn))
+                        {
+                            log.LogTrace("Consumer failed to resolve entry for {item} or label was Base", dn);
+                        }
+                        continue;
+                    }
+
+                    log.LogTrace("Consumer {ThreadID} started processing {obj} ({type})", threadId, res.DisplayName, res.ObjectType);
+                    watch.Start();
+                    var processed = await processor.ProcessObject(item, res, _compStatusChannel);
+                    watch.Stop();
+                    log.LogTrace("Consumer {ThreadID} took {time} ms to process {obj}", threadId,
+                        watch.Elapsed.TotalMilliseconds, res.DisplayName);
+                    if (processed == null)
+                        continue;
+
+                    if (processed is Domain d && _context.CollectedDomainSids.Contains(d.ObjectIdentifier))
+                    {
+                        d.Properties.Add("collected", true);
+                    }
+                    await _outputChannel.Writer.WriteAsync(processed);
+                }
+                catch (Exception e)
+                {
+                    log.LogError(e, "error in consumer");
+                }
+
+            log.LogDebug("Consumer task on thread {id} completed", Thread.CurrentThread.ManagedThreadId);
         }
     }
 }

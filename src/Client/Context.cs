@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -76,5 +77,10 @@ namespace Sharphound.Client
         EnumerationDomain[] Domains { get; set; }
         void UpdateLoopTime();
         public HashSet<string> CollectedDomainSids { get; }
+
+        /// <summary>
+        /// Dictionary mapping domain names to their AdminSDHolder authoritative security descriptor hash
+        /// </summary>
+        ConcurrentDictionary<string, string> AdminSDHolderHash { get; set; }
     }
 }

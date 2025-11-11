@@ -16,7 +16,7 @@ jobs:
       matrix:
         release:
           - type: Debug
-            suffix: '-debug'
+            suffix: '+debug'
           - type: Release
             suffix: ''
 
@@ -39,9 +39,15 @@ jobs:
           dotnet build -c ${{ matrix.release.type }} -p:Version=${VERSION:1}
 
       - name: Zip
-        run: 7z a -tzip -mx9 SharpHound-${{ github.ref_name }}${{ matrix.release.suffix }}.zip $PWD/bin/${{ matrix.release.type }}/net462/*
+        run: 7z a -tzip -mx9 SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip $PWD/bin/${{ matrix.release.type }}/net472/*
+
+      - name: Checksum zip files
+        run: |
+          sha256sum SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip > SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: SharpHound-${{ github.ref_name }}${{ matrix.release.suffix }}.zip
+          files: |
+            SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip
+            SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
