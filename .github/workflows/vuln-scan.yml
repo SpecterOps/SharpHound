@@ -3,7 +3,7 @@ name: Vulnerability Scan
 on:
   pull_request:
     branches:
-      - "*.*.*"
+      - "*.*"
     types:
       - opened
       - synchronize
