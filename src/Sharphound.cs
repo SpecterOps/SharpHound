@@ -16,6 +16,7 @@
 
 using System;
 using System.DirectoryServices.Protocols;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
@@ -38,6 +39,8 @@ namespace Sharphound
         public static async Task Main(string[] args) {
             var logger = new BasicLogger((int)LogLevel.Information);
             logger.LogInformation("This version of SharpHound is compatible with the 5.0.0 Release of BloodHound");
+            logger.LogInformation("SharpHound Version: {Version}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            logger.LogInformation("SharpHound Common Version: {Version}", Assembly.GetAssembly(typeof(CommonLib)).GetName().Version.ToString());
 
             try {
                 // Checks the release version available on the machine.
