@@ -16,6 +16,7 @@
 
 using System;
 using System.DirectoryServices.Protocols;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
@@ -40,6 +41,8 @@ namespace Sharphound
             logger.LogInformation("This version of SharpHound is compatible with the 5.0.0 Release of BloodHound");
 
             try {
+                logger.LogInformation("SharpHound Version: {Version}", Assembly.GetExecutingAssembly().GetName().Version);
+                logger.LogInformation("SharpHound Common Version: {Version}", Assembly.GetAssembly(typeof(CommonLib)).GetName().Version);
                 // Checks the release version available on the machine.
                 var releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
                 if (releaseVersion == 0) releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
