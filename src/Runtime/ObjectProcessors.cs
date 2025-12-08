@@ -40,7 +40,9 @@ namespace Sharphound.Runtime {
         private readonly WebClientServiceProcessor _webClientProcessor;
         private readonly SmbProcessor _smbProcessor;
         private readonly ConcurrentDictionary<string, RegistryProcessor> _registryProcessorMap = new();
-        public ObjectProcessors(IContext context, ILogger log) {
+        private readonly Channel<CSVComputerStatus> _compStatusChannel;
+        
+        public ObjectProcessors(IContext context, ILogger log, Channel<CSVComputerStatus> compStatusChannel) {
             _context = context;
             _aclProcessor = new ACLProcessor(context.LDAPUtils);
             _spnProcessor = new SPNProcessors(context.LDAPUtils);
@@ -63,15 +65,29 @@ namespace Sharphound.Runtime {
             _methods = context.ResolvedCollectionMethods;
             _cancellationToken = context.CancellationTokenSource.Token;
             _log = log;
+            _compStatusChannel = compStatusChannel;
+
+            _certAbuseProcessor.ComputerStatusEvent += HandleCompStatusEvent;
         }
 
-        internal async Task<OutputBase> ProcessObject(IDirectoryObject entry,
-            ResolvedSearchResult resolvedSearchResult, Channel<CSVComputerStatus> compStatusChannel) {
+        internal void ClearEventHandlers() {
+            _certAbuseProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+        }
+
+        private async Task HandleCompStatusEvent(CSVComputerStatus status) {
+            try {
+                await _compStatusChannel.Writer.WriteAsync(status, _cancellationToken);
+            } catch (Exception e) {
+                _log.LogWarning(e, "Caught exception writing to compstatus writer");
+            }
+        }
+
+        internal async Task<OutputBase> ProcessObject(IDirectoryObject entry, ResolvedSearchResult resolvedSearchResult) {
             switch (resolvedSearchResult.ObjectType) {
                 case Label.User:
                     return await ProcessUserObject(entry, resolvedSearchResult);
                 case Label.Computer:
-                    return await ProcessComputerObject(entry, resolvedSearchResult, compStatusChannel);
+                    return await ProcessComputerObject(entry, resolvedSearchResult);
                 case Label.Group:
                     return await ProcessGroupObject(entry, resolvedSearchResult);
                 case Label.GPO:
@@ -88,7 +104,7 @@ namespace Sharphound.Runtime {
                 case Label.AIACA:
                     return await ProcessAIACA(entry, resolvedSearchResult);
                 case Label.EnterpriseCA:
-                    return await ProcessEnterpriseCA(entry, resolvedSearchResult, compStatusChannel);
+                    return await ProcessEnterpriseCA(entry, resolvedSearchResult);
                 case Label.NTAuthStore:
                     return await ProcessNTAuthStore(entry, resolvedSearchResult);
                 case Label.CertTemplate:
@@ -208,8 +224,7 @@ namespace Sharphound.Runtime {
 
         private async Task<Computer> ProcessComputerObject(
             IDirectoryObject entry,
-            ResolvedSearchResult resolvedSearchResult,
-            Channel<CSVComputerStatus> compStatusChannel
+            ResolvedSearchResult resolvedSearchResult
         ) {
             var ret = new Computer {
                 ObjectIdentifier = resolvedSearchResult.ObjectId,
@@ -280,8 +295,7 @@ namespace Sharphound.Runtime {
             var availability = await _computerAvailability.IsComputerAvailable(resolvedSearchResult, entry);
 
             if (!availability.Connectable) {
-                await compStatusChannel.Writer.WriteAsync(availability.GetCSVStatus(resolvedSearchResult.DisplayName),
-                    _cancellationToken);
+                await HandleCompStatusEvent(availability.GetCSVStatus(resolvedSearchResult.DisplayName));
                 ret.Status = availability;
                 return ret;
             }
@@ -297,12 +311,12 @@ namespace Sharphound.Runtime {
                     resolvedSearchResult.ObjectId, resolvedSearchResult.Domain);
                 ret.Sessions = sessionResult;
                 if (_context.Flags.DumpComputerStatus)
-                    await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
+                    await HandleCompStatusEvent(new CSVComputerStatus {
                         Status = sessionResult.Collected ? StatusSuccess : sessionResult.FailureReason,
                         Task = "NetSessionEnum",
                         ComputerName = resolvedSearchResult.DisplayName,
                         ObjectId = resolvedSearchResult.ObjectId,
-                    }, _cancellationToken);
+                    });
             }
 
             if (_methods.HasFlag(CollectionMethod.LoggedOn)) {
@@ -313,12 +327,12 @@ namespace Sharphound.Runtime {
                 ret.PrivilegedSessions = privSessionResult;
 
                 if (_context.Flags.DumpComputerStatus)
-                    await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
+                    await HandleCompStatusEvent(new CSVComputerStatus {
                         Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
                         Task = "NetWkstaUserEnum",
                         ComputerName = resolvedSearchResult.DisplayName,
                         ObjectId = resolvedSearchResult.ObjectId,
-                    }, _cancellationToken);
+                    });
 
                 if (!_context.Flags.NoRegistryLoggedOn) {
                     await _context.DoDelay();
@@ -326,12 +340,12 @@ namespace Sharphound.Runtime {
                         resolvedSearchResult.Domain, resolvedSearchResult.ObjectId);
                     ret.RegistrySessions = registrySessionResult;
                     if (_context.Flags.DumpComputerStatus)
-                        await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus {
+                        await HandleCompStatusEvent(new CSVComputerStatus {
                             Status = registrySessionResult.Collected ? StatusSuccess : registrySessionResult.FailureReason,
                             Task = "RegistrySessions",
                             ComputerName = resolvedSearchResult.DisplayName,
                             ObjectId = resolvedSearchResult.ObjectId,
-                        }, _cancellationToken);
+                        });
                 }
             }
 
@@ -704,9 +718,7 @@ namespace Sharphound.Runtime {
             return ret;
         }
 
-        private async Task<EnterpriseCA> ProcessEnterpriseCA(IDirectoryObject entry,
-            ResolvedSearchResult resolvedSearchResult,
-            Channel<CSVComputerStatus> compStatusChannel) {
+        private async Task<EnterpriseCA> ProcessEnterpriseCA(IDirectoryObject entry, ResolvedSearchResult resolvedSearchResult) {
             var ret = new EnterpriseCA {
                 ObjectIdentifier = resolvedSearchResult.ObjectId,
                 Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult))
@@ -749,14 +761,13 @@ namespace Sharphound.Runtime {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
                         ret.HostingComputer = sid;
-                        await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus
+                        await HandleCompStatusEvent(new CSVComputerStatus
                             {
                                 Status = ComputerStatus.Success,
                                 ComputerName = resolvedSearchResult.DisplayName,
                                 Task = nameof(ProcessEnterpriseCA),
                                 ObjectId = resolvedSearchResult.ObjectId,
-                            },
-                            _cancellationToken);
+                            });
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
                     }
@@ -779,24 +790,23 @@ namespace Sharphound.Runtime {
                 if (caName != null && dnsHostName != null) {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
-                        await compStatusChannel.Writer.WriteAsync(new CSVComputerStatus
+                        await HandleCompStatusEvent(new CSVComputerStatus
                         {
                             Status = ComputerStatus.Success,
                             ComputerName = resolvedSearchResult.DisplayName,
                             Task = nameof(ProcessEnterpriseCA),
                             ObjectId = sid,
-                        },
-                        _cancellationToken);
+                        });
                         ret.HostingComputer = sid;
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
                     }
 
                     CARegistryData cARegistryData = new() {
-                        IsUserSpecifiesSanEnabled = _certAbuseProcessor.IsUserSpecifiesSanEnabled(dnsHostName, caName),
+                        IsUserSpecifiesSanEnabled = await _certAbuseProcessor.IsUserSpecifiesSanEnabled(dnsHostName, caName, ret.HostingComputer),
                         EnrollmentAgentRestrictions = await _certAbuseProcessor.ProcessEAPermissions(caName,
                             resolvedSearchResult.Domain, dnsHostName, ret.HostingComputer),
-                        RoleSeparationEnabled = _certAbuseProcessor.RoleSeparationEnabled(dnsHostName, caName),
+                        RoleSeparationEnabled = await _certAbuseProcessor.RoleSeparationEnabled(dnsHostName, caName, ret.HostingComputer),
 
                         // The CASecurity exist in the AD object DACL and in registry of the CA server. We prefer to use the values from registry as they are the ground truth.
                         // If changes are made on the CA server, registry and the AD object is updated. If changes are made directly on the AD object, the CA server registry is not updated.
