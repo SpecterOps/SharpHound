@@ -50,7 +50,7 @@ namespace Sharphound.Runtime {
             _domainTrustProcessor = new DomainTrustProcessor(context.LDAPUtils);
             _computerAvailability = new ComputerAvailability(context.PortScanTimeout,
                 skipPortScan: context.Flags.SkipPortScan, skipPasswordCheck: context.Flags.SkipPasswordAgeCheck);
-            _certAbuseProcessor = new CertAbuseProcessor(context.LDAPUtils);
+            _certAbuseProcessor = new CertAbuseProcessor(context.LDAPUtils, new RegistryAccessor());
             _dcRegistryProcessor = new DCRegistryProcessor(context.LDAPUtils);
             _computerSessionProcessor = new ComputerSessionProcessor(context.LDAPUtils,
                 doLocalAdminSessionEnum: context.Flags.DoLocalAdminSessionEnum,
@@ -806,7 +806,7 @@ namespace Sharphound.Runtime {
                         IsUserSpecifiesSanEnabled = await _certAbuseProcessor.IsUserSpecifiesSanEnabled(dnsHostName, caName, ret.HostingComputer),
                         EnrollmentAgentRestrictions = await _certAbuseProcessor.ProcessEAPermissions(caName,
                             resolvedSearchResult.Domain, dnsHostName, ret.HostingComputer),
-                        RoleSeparationEnabled = await _certAbuseProcessor.RoleSeparationEnabled(dnsHostName, caName, ret.HostingComputer),
+                        RoleSeparationEnabled = await _certAbuseProcessor.IsRoleSeparationEnabled(dnsHostName, caName, ret.HostingComputer),
 
                         // The CASecurity exist in the AD object DACL and in registry of the CA server. We prefer to use the values from registry as they are the ground truth.
                         // If changes are made on the CA server, registry and the AD object is updated. If changes are made directly on the AD object, the CA server registry is not updated.
