@@ -67,10 +67,22 @@ namespace Sharphound.Runtime {
             _log = log;
             _compStatusChannel = compStatusChannel;
 
+            _localGroupProcessor.ComputerStatusEvent += HandleCompStatusEvent;
+            _computerSessionProcessor.ComputerStatusEvent += HandleCompStatusEvent;
+            _userRightsAssignmentProcessor.ComputerStatusEvent += HandleCompStatusEvent;
+            _computerAvailability.ComputerStatusEvent += HandleCompStatusEvent;
+            _spnProcessor.ComputerStatusEvent += HandleCompStatusEvent;
+            _ldapPropertyProcessor.ComputerStatusEvent += HandleCompStatusEvent;
             _certAbuseProcessor.ComputerStatusEvent += HandleCompStatusEvent;
         }
 
         internal void ClearEventHandlers() {
+            _localGroupProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            _computerSessionProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            _userRightsAssignmentProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            _computerAvailability.ComputerStatusEvent -= HandleCompStatusEvent;
+            _spnProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            _ldapPropertyProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _certAbuseProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
         }
 
