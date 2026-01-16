@@ -13,6 +13,7 @@ using SharpHoundCommonLib.DirectoryObjects;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
 using SharpHoundCommonLib.Processors;
+using SharpHoundRPC.Wrappers;
 using Container = SharpHoundCommonLib.OutputTypes.Container;
 using Group = SharpHoundCommonLib.OutputTypes.Group;
 using Label = SharpHoundCommonLib.Enums.Label;
@@ -50,7 +51,7 @@ namespace Sharphound.Runtime {
             _domainTrustProcessor = new DomainTrustProcessor(context.LDAPUtils);
             _computerAvailability = new ComputerAvailability(context.PortScanTimeout,
                 skipPortScan: context.Flags.SkipPortScan, skipPasswordCheck: context.Flags.SkipPasswordAgeCheck);
-            _certAbuseProcessor = new CertAbuseProcessor(context.LDAPUtils, new RegistryAccessor());
+            _certAbuseProcessor = new CertAbuseProcessor(context.LDAPUtils, new RegistryAccessor(), new SAMServerAccessor());
             _dcRegistryProcessor = new DCRegistryProcessor(context.LDAPUtils);
             _computerSessionProcessor = new ComputerSessionProcessor(context.LDAPUtils,
                 doLocalAdminSessionEnum: context.Flags.DoLocalAdminSessionEnum,
