@@ -85,6 +85,9 @@ namespace Sharphound.Runtime {
             _spnProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _ldapPropertyProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _certAbuseProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            foreach (var registryProcessor in _registryProcessorMap.Values) {
+                registryProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            }
         }
 
         private async Task HandleCompStatusEvent(CSVComputerStatus status) {
@@ -376,6 +379,7 @@ namespace Sharphound.Runtime {
                     ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
                 } else {
                     var newProcessor = new RegistryProcessor(null, resolvedSearchResult.Domain);
+                    newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
                     _registryProcessorMap.TryAdd(resolvedSearchResult.DomainSid, newProcessor);
                     ret.NTLMRegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
                 }
