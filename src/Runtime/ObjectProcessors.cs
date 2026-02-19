@@ -13,6 +13,7 @@ using SharpHoundCommonLib.DirectoryObjects;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
 using SharpHoundCommonLib.Processors;
+using SharpHoundRPC.Registry;
 using SharpHoundRPC.Wrappers;
 using Container = SharpHoundCommonLib.OutputTypes.Container;
 using Group = SharpHoundCommonLib.OutputTypes.Group;
@@ -378,7 +379,7 @@ namespace Sharphound.Runtime {
                 if (_registryProcessorMap.TryGetValue(resolvedSearchResult.DomainSid, out var processor)) {
                     ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
                 } else {
-                    var newProcessor = new RegistryProcessor(null, resolvedSearchResult.Domain);
+                    var newProcessor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
                     newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
                     _registryProcessorMap.TryAdd(resolvedSearchResult.DomainSid, newProcessor);
                     ret.NTLMRegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
