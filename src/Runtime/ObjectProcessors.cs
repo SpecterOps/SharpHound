@@ -376,14 +376,12 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
                 await _context.DoDelay();
-                if (_registryProcessorMap.TryGetValue(resolvedSearchResult.DomainSid, out var processor)) {
-                    ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
-                } else {
+                var processor = _registryProcessorMap.GetOrAdd(resolvedSearchResult.DomainSid, _ => {
                     var newProcessor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
                     newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
-                    _registryProcessorMap.TryAdd(resolvedSearchResult.DomainSid, newProcessor);
-                    ret.NTLMRegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
-                }
+                    return newProcessor;
+                });
+                ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
             }
 
             if (_methods.HasFlag(CollectionMethod.WebClientService)) {
