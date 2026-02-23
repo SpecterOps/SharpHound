@@ -41,7 +41,7 @@ namespace Sharphound.Runtime {
         private readonly SPNProcessors _spnProcessor;
         private readonly WebClientServiceProcessor _webClientProcessor;
         private readonly SmbProcessor _smbProcessor;
-        private readonly ConcurrentDictionary<string, RegistryProcessor> _registryProcessorMap = new();
+        private readonly ConcurrentDictionary<string, Lazy<RegistryProcessor>> _registryProcessorMap = new();
         private readonly Channel<CSVComputerStatus> _compStatusChannel;
         
         public ObjectProcessors(IContext context, ILogger log, Channel<CSVComputerStatus> compStatusChannel) {
@@ -86,8 +86,9 @@ namespace Sharphound.Runtime {
             _spnProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _ldapPropertyProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _certAbuseProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
-            foreach (var registryProcessor in _registryProcessorMap.Values) {
-                registryProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            foreach (var lazy in _registryProcessorMap.Values) {
+                if (lazy.IsValueCreated) 
+                    lazy.Value.ComputerStatusEvent -= HandleCompStatusEvent;
             }
         }
 
@@ -376,11 +377,13 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
                 await _context.DoDelay();
-                var processor = _registryProcessorMap.GetOrAdd(resolvedSearchResult.DomainSid, _ => {
-                    var newProcessor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
-                    newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
-                    return newProcessor;
-                });
+                var processor = _registryProcessorMap.GetOrAdd(
+                    resolvedSearchResult.DomainSid,
+                    _ => new Lazy<RegistryProcessor>(() => {
+                        var newProcessor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
+                        newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
+                        return newProcessor;
+                    })).Value;
                 ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
             }
 
