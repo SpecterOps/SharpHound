@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: SpecterOps/SharpHoundCommon
-          ref: main
+          ref: v4
           path: SharpHoundCommon
 
       - name: Setup .NET
