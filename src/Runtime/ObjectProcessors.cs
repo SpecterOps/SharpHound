@@ -52,8 +52,7 @@ namespace Sharphound.Runtime {
             _domainTrustProcessor = new DomainTrustProcessor(context.LDAPUtils);
             _computerAvailability = new ComputerAvailability(context.PortScanTimeout,
                 skipPortScan: context.Flags.SkipPortScan, skipPasswordCheck: context.Flags.SkipPasswordAgeCheck);
-            //TODO: temp change to test github build pipeline
-            _certAbuseProcessor = new CertAbuseProcessor(context.LDAPUtils, new RegistryAccessor(), new SAMServerAccessor(), "");
+            _certAbuseProcessor = new CertAbuseProcessor(context.LDAPUtils, new RegistryAccessor(), new SAMServerAccessor());
             _dcRegistryProcessor = new DCRegistryProcessor(context.LDAPUtils);
             _computerSessionProcessor = new ComputerSessionProcessor(context.LDAPUtils,
                 doLocalAdminSessionEnum: context.Flags.DoLocalAdminSessionEnum,
