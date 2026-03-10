@@ -16,9 +16,7 @@ jobs:
       matrix:
         release:
           - type: Debug
-#            suffix: '-debug'
           - type: Release
-#            suffix: ''
 
     name: Build (${{ matrix.release.type }})
 
@@ -32,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: SpecterOps/SharpHoundCommon
-          ref: v4
+          ref: lfalslev/bed-7214 #TODO temp pipeline test revert to v4
           path: SharpHoundCommon
 
       - name: Build SharpHoundCommon
@@ -48,19 +46,3 @@ jobs:
 
       - name: Build SharpHound
         run: dotnet build SharpHound/Sharphound.csproj -c ${{ matrix.release.type }} -p:Version=0.0.0-rolling+${{ github.sha }}
-
-#      - name: Zip
-#        if: "! startsWith(github.event_name, 'pull_request')"
-#        run: 7z a -tzip -mx9 SharpHound${{ matrix.release.suffix }}.zip $PWD/bin/${{ matrix.release.type }}/net472/*
-#
-#      - name: Update Rolling Release
-#        if: "! startsWith(github.event_name, 'pull_request')"
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          name: Rolling Release (unstable)
-#          tag_name: rolling
-#          prerelease: true
-#          files: SharpHound${{ matrix.release.suffix }}.zip
-#          body: |
-#            Rolling release of SharpHound compiled from source (${{ github.sha }})
-#            This is automatically kept up-to-date with the `${{ github.ref_name }}` ${{ github.ref_type }}.
