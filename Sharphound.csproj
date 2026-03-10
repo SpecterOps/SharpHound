@@ -35,11 +35,11 @@
         <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
-        <ItemGroup Condition="!Exists('$(CommonLibPath)')">
+        <ItemGroup Condition="!Exists('$(CommonLibPath)') and !Exists('$(RPCPath)')">
             <PackageReference Include="SharpHoundCommon" Version="4.5.3" />
             <PackageReference Include="SharpHoundRPC" Version="4.5.3" />
         </ItemGroup>
-        <ItemGroup Condition="Exists('$(CommonLibPath)')">
+        <ItemGroup Condition="Exists('$(CommonLibPath)') and Exists('$(RPCPath)')">
             <Reference Include="SharpHoundCommonLib">
                 <HintPath>$(CommonLibPath)</HintPath>
             </Reference>
