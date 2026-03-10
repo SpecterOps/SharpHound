@@ -16,17 +16,17 @@ jobs:
       matrix:
         release:
           - type: Debug
-            suffix: '-debug'
+#            suffix: '-debug'
           - type: Release
-            suffix: ''
+#            suffix: ''
 
     name: Build (${{ matrix.release.type }})
 
     steps:
-      - name: Checkout SharpHound
-        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          path: SharpHound
+          dotnet-version: 5.0.x
 
       - name: Checkout SharpHoundCommon
         uses: actions/checkout@v4
@@ -35,19 +35,19 @@ jobs:
           ref: v4
           path: SharpHoundCommon
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 5.0.x
-
       - name: Build SharpHoundCommon
         run: dotnet build SharpHoundCommon/SharpHoundCommon.sln -c ${{ matrix.release.type }}
 
-      - name: Restore Dependencies
-        run: dotnet restore
+      - name: Checkout SharpHound
+        uses: actions/checkout@v4
+        with:
+          path: SharpHound
 
-      - name: Build
-        run: dotnet build -c ${{ matrix.release.type }} -p:Version=0.0.0-rolling+${{ github.sha }}
+      - name: Restore SharpHound Dependencies
+        run: dotnet restore SharpHound/Sharphound.csproj
+
+      - name: Build SharpHound
+        run: dotnet build SharpHound/Sharphound.csproj -c ${{ matrix.release.type }} -p:Version=0.0.0-rolling+${{ github.sha }}
 
 #      - name: Zip
 #        if: "! startsWith(github.event_name, 'pull_request')"

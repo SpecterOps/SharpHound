@@ -15,8 +15,8 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll</CommonLibPath>
-        <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472\SharpHoundRPC.dll</RPCPath>
+        <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
+        <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
     </PropertyGroup>
 
     <ItemGroup>
