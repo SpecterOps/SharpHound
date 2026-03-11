@@ -3,7 +3,6 @@ name: Build
 on:
   pull_request:
     branches: [ 2.X ]
-    types: [opened, synchronize]
 
 jobs:
   build:
@@ -41,4 +40,4 @@ jobs:
 
       - name: Build SharpHound
         working-directory: SharpHound
-        run: dotnet build --no-restore
+        run: dotnet build --no-restore -p:PreferLocalLibs=true
