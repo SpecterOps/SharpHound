@@ -32,16 +32,6 @@ jobs:
       - name: Run ls SHC
         working-directory: SharpHoundCommon
         run: |
-#          ls
-#          ls .\src
-#          ls .\src\CommonLib
-#          ls .\src\CommonLib\bin
-#          ls .\src\CommonLib\bin\Debug
-#          ls .\src\CommonLib\bin\Debug\net472
-#          ls .\src\CommonLib\bin\Release
-#          ls .\src\CommonLib\bin\Release\net472
-#          ls .\src\SharpHoundRPC
-#          ls .\src\SharpHoundRPC\bin
           ls .\src\SharpHoundRPC\bin\Debug
           ls .\src\SharpHoundRPC\bin\Debug\net472
           ls .\src\SharpHoundRPC\bin\Release
