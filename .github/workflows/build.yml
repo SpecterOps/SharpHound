@@ -29,42 +29,25 @@ jobs:
         working-directory: SharpHoundCommon
         run: dotnet build --no-restore
 
-      - name: Run ls SHC
-        working-directory: SharpHoundCommon
-        run: |
-          ls .\src\SharpHoundRPC\bin\Debug
-          ls .\src\SharpHoundRPC\bin\Debug\net472
-          ls .\src\SharpHoundRPC\bin\Release
-          ls .\src\SharpHoundRPC\bin\Release\net472
-
       - name: Checkout SharpHound
         uses: actions/checkout@v6
         with:
           path: SharpHound
-          
-      - name: Run ls SH
-        working-directory: SharpHound
-        run: |
-          ls ..
-          ls ..\SharpHoundCommon\src\CommonLib\bin\Debug\net472
-          ls ..\SharpHoundCommon\src\CommonLib\bin\Release\net472
-          ls ..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472
-          ls ..\SharpHoundCommon\src\SharpHoundRPC\bin\Release\net472
 
       - name: Check if local libs exist (from SharpHound perspective)
         working-directory: SharpHound
         run: |
           echo "Checking paths as SharpHound sees them..."
-          if (Test-Path "..\SharpHoundCommon\src\CommonLib\bin\${{ env.CONFIG }}\net472\SharpHoundCommonLib.dll") {
+          if (Test-Path "..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll") {
             Write-Host "✓ CommonLib DLL found at relative path"
-            Get-Item "..\SharpHoundCommon\src\CommonLib\bin\${{ env.CONFIG }}\net472\SharpHoundCommonLib.dll" | Select-Object FullName, Length
+            Get-Item "..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll" | Select-Object FullName, Length
           } else {
             Write-Host "✗ CommonLib DLL NOT found at relative path"
           }
           
-          if (Test-Path "..\SharpHoundCommon\src\SharpHoundRPC\bin\${{ env.CONFIG }}\net472\SharpHoundRPC.dll") {
+          if (Test-Path "..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472\SharpHoundRPC.dll") {
             Write-Host "✓ RPC DLL found at relative path"
-            Get-Item "..\SharpHoundCommon\src\SharpHoundRPC\bin\${{ env.CONFIG }}\net472\SharpHoundRPC.dll" | Select-Object FullName, Length
+            Get-Item "..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472\SharpHoundRPC.dll" | Select-Object FullName, Length
           } else {
             Write-Host "✗ RPC DLL NOT found at relative path"
           }
@@ -75,4 +58,4 @@ jobs:
 
       - name: Build SharpHound
         working-directory: SharpHound
-        run: dotnet build --no-restore -p:PreferLocalLibs=true
+        run: dotnet build --no-restore -p:PreferLocalLibs=true -v diag

@@ -57,4 +57,15 @@
         <Message Text="Test" />
         <Exec Command="powershell -ep bypass -c &quot;. '$(ProjectDir)src\Powershell\Out-CompressedDLL.ps1';Out-CompressedDll -FilePath '$(TargetPath)' -TemplatePath '$(ProjectDir)src\\Powershell\Template.ps1' | Out-File -Encoding ASCII '$(TargetDir)$(TargetName).ps1'&quot;" />
     </Target>
+
+    <Target Name="DiagnosticOutput" BeforeTargets="Build">
+        <Message Text="=== PreferLocalLibs Diagnostic ===" Importance="high" />
+        <Message Text="PreferLocalLibs value: $(PreferLocalLibs)" Importance="high" />
+        <Message Text="CommonLibPath: $(CommonLibPath)" Importance="high" />
+        <Message Text="RPCPath: $(RPCPath)" Importance="high" />
+        <Message Text="CommonLib exists: $([System.IO.File]::Exists('$(CommonLibPath)'))" Importance="high" />
+        <Message Text="RPC exists: $([System.IO.File]::Exists('$(RPCPath)'))" Importance="high" />
+        <Message Text="Condition 1 (NuGet): $(PreferLocalLibs) == 'false' or !Exists('$(CommonLibPath)') or !Exists('$(RPCPath)')" Importance="high" />
+        <Message Text="Condition 2 (Local): $(PreferLocalLibs) == 'true' and Exists('$(CommonLibPath)') and Exists('$(RPCPath)')" Importance="high" />
+    </Target>
 </Project>
