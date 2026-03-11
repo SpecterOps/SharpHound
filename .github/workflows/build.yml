@@ -8,40 +8,37 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    defaults:
-      run:
-        shell: bash
-
-    strategy:
-      matrix:
-        release:
-          - type: Debug
-          - type: Release
-
-    name: Build (${{ matrix.release.type }})
 
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 5.0.x
 
       - name: Checkout SharpHoundCommon
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: SpecterOps/SharpHoundCommon
           ref: v4
           path: SharpHoundCommon
 
+      - name: Restore SharpHoundCommon Dependencies
+        working-directory: SharpHoundCommon
+        run: dotnet restore
+
       - name: Build SharpHoundCommon
         working-directory: SharpHoundCommon
-        run: dotnet build -c ${{ matrix.release.type }}
+        run: dotnet build --no-restore
 
       - name: Checkout SharpHound
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: SharpHound
 
+      - name: Restore SharpHound Dependencies
+        working-directory: SharpHound
+        run: dotnet restore
+
       - name: Build SharpHound
         working-directory: SharpHound
-        run: dotnet build -c ${{ matrix.release.type }} -p:Version=0.0.0-rolling+${{ github.sha }}
+        run: dotnet build --no-restore
