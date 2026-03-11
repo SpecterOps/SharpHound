@@ -52,10 +52,10 @@ jobs:
             Write-Host "✗ RPC DLL NOT found at relative path"
           }
 
-      - name: Restore SharpHound Dependencies
-        working-directory: SharpHound
-        run: dotnet restore
+#      - name: Restore SharpHound Dependencies
+#        working-directory: SharpHound
+#        run: dotnet restore
 
       - name: Build SharpHound
         working-directory: SharpHound
-        run: dotnet build --no-restore -p:PreferLocalLibs=true -v m
+        run: dotnet build --no-restore -p:PreferLocalLibs=true

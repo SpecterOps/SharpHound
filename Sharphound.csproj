@@ -36,10 +36,6 @@
         <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
-    <ItemGroup Condition="$(PreferLocalLibs) == 'false' or !Exists('$(CommonLibPath)') or !Exists('$(RPCPath)')">
-        <PackageReference Include="SharpHoundCommon" Version="4.5.3" />
-        <PackageReference Include="SharpHoundRPC" Version="4.5.3" />
-    </ItemGroup>
     <ItemGroup Condition="$(PreferLocalLibs) == 'true' and Exists('$(CommonLibPath)') and Exists('$(RPCPath)')">
         <Reference Include="SharpHoundCommonLib">
             <HintPath>$(CommonLibPath)</HintPath>
@@ -47,6 +43,10 @@
         <Reference Include="SharpHoundRPC">
             <HintPath>$(RPCPath)</HintPath>
         </Reference>
+    </ItemGroup>
+    <ItemGroup Condition="$(PreferLocalLibs) == 'false' or !Exists('$(CommonLibPath)') or !Exists('$(RPCPath)')">
+        <PackageReference Include="SharpHoundCommon" Version="4.5.3" />
+        <PackageReference Include="SharpHoundRPC" Version="4.5.3" />
     </ItemGroup>
     <ItemGroup>
         <Reference Include="System.DirectoryServices" />
@@ -56,16 +56,5 @@
     <Target Name="PS1" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
         <Message Text="Test" />
         <Exec Command="powershell -ep bypass -c &quot;. '$(ProjectDir)src\Powershell\Out-CompressedDLL.ps1';Out-CompressedDll -FilePath '$(TargetPath)' -TemplatePath '$(ProjectDir)src\\Powershell\Template.ps1' | Out-File -Encoding ASCII '$(TargetDir)$(TargetName).ps1'&quot;" />
-    </Target>
-
-    <Target Name="DiagnosticOutput" BeforeTargets="Build">
-        <Message Text="=== PreferLocalLibs Diagnostic ===" Importance="high" />
-        <Message Text="PreferLocalLibs value: $(PreferLocalLibs)" Importance="high" />
-        <Message Text="CommonLibPath: $(CommonLibPath)" Importance="high" />
-        <Message Text="RPCPath: $(RPCPath)" Importance="high" />
-        <Message Text="CommonLib exists: $([System.IO.File]::Exists('$(CommonLibPath)'))" Importance="high" />
-        <Message Text="RPC exists: $([System.IO.File]::Exists('$(RPCPath)'))" Importance="high" />
-        <Message Text="Condition 1 (NuGet): $(PreferLocalLibs) == 'false' or !Exists('$(CommonLibPath)') or !Exists('$(RPCPath)')" Importance="high" />
-        <Message Text="Condition 2 (Local): $(PreferLocalLibs) == 'true' and Exists('$(CommonLibPath)') and Exists('$(RPCPath)')" Importance="high" />
     </Target>
 </Project>
