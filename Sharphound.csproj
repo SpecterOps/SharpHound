@@ -36,18 +36,18 @@
         <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
-        <ItemGroup Condition="$(PreferLocalLibs) == 'false' or (!Exists('$(CommonLibPath)') and !Exists('$(RPCPath)'))">
-            <PackageReference Include="SharpHoundCommon" Version="4.5.3" />
-            <PackageReference Include="SharpHoundRPC" Version="4.5.3" />
-        </ItemGroup>
-        <ItemGroup Condition="$(PreferLocalLibs) == 'true' and Exists('$(CommonLibPath)') and Exists('$(RPCPath)')">
-            <Reference Include="SharpHoundCommonLib">
-                <HintPath>$(CommonLibPath)</HintPath>
-            </Reference>
-            <Reference Include="SharpHoundRPC">
-                <HintPath>$(RPCPath)</HintPath>
-            </Reference>
-        </ItemGroup>
+    <ItemGroup Condition="$(PreferLocalLibs) == 'false' or !Exists('$(CommonLibPath)') or !Exists('$(RPCPath)')">
+        <PackageReference Include="SharpHoundCommon" Version="4.5.3" />
+        <PackageReference Include="SharpHoundRPC" Version="4.5.3" />
+    </ItemGroup>
+    <ItemGroup Condition="$(PreferLocalLibs) == 'true' and Exists('$(CommonLibPath)') and Exists('$(RPCPath)')">
+        <Reference Include="SharpHoundCommonLib">
+            <HintPath>$(CommonLibPath)</HintPath>
+        </Reference>
+        <Reference Include="SharpHoundRPC">
+            <HintPath>$(RPCPath)</HintPath>
+        </Reference>
+    </ItemGroup>
     <ItemGroup>
         <Reference Include="System.DirectoryServices" />
         <Reference Include="System.DirectoryServices.Protocols" />
