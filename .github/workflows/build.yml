@@ -29,10 +29,32 @@ jobs:
         working-directory: SharpHoundCommon
         run: dotnet build --no-restore
 
+      - name: Run ls SHC
+        working-directory: SharpHoundCommon
+        run: |
+          ls
+          ls .\src
+          ls .\src\CommonLib
+          ls .\src\CommonLib\bin
+          ls .\src\SharpHoundRPC
+          ls .\src\SharpHoundRPC\bin
+
       - name: Checkout SharpHound
         uses: actions/checkout@v6
         with:
           path: SharpHound
+          
+      - name: Run ls SH
+        working-directory: SharpHound
+        run: |
+          ls
+          ls ..
+          ls ..\SharpHoundCommon
+          ls ..\SharpHoundCommon\src
+          ls ..\SharpHoundCommon\src\CommonLib
+          ls ..\SharpHoundCommon\src\CommonLib\bin
+          ls ..\SharpHoundCommon\src\SharpHoundRPC
+          ls ..\SharpHoundCommon\src\SharpHoundRPC\bin
 
       - name: Check if local libs exist (from SharpHound perspective)
         working-directory: SharpHound
