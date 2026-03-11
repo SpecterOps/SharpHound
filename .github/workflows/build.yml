@@ -38,16 +38,16 @@ jobs:
         working-directory: SharpHound
         run: |
           echo "Checking paths as SharpHound sees them..."
-          if (Test-Path "..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll") {
+          if (Test-Path "..\SharpHoundCommon\src\CommonLib\bin\${{ env.CONFIG }}\net472\SharpHoundCommonLib.dll") {
             Write-Host "✓ CommonLib DLL found at relative path"
-            Get-Item "..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll" | Select-Object FullName, Length
+            Get-Item "..\SharpHoundCommon\src\CommonLib\bin\${{ env.CONFIG }}\net472\SharpHoundCommonLib.dll" | Select-Object FullName, Length
           } else {
             Write-Host "✗ CommonLib DLL NOT found at relative path"
           }
           
-          if (Test-Path "..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll") {
+          if (Test-Path "..\SharpHoundCommon\src\SharpHoundRPC\bin\${{ env.CONFIG }}\net472\SharpHoundRPC.dll") {
             Write-Host "✓ RPC DLL found at relative path"
-            Get-Item "..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll" | Select-Object FullName, Length
+            Get-Item "..\SharpHoundCommon\src\SharpHoundRPC\bin\${{ env.CONFIG }}\net472\SharpHoundRPC.dll" | Select-Object FullName, Length
           } else {
             Write-Host "✗ RPC DLL NOT found at relative path"
           }
