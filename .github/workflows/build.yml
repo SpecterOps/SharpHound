@@ -58,4 +58,4 @@ jobs:
 
       - name: Build SharpHound
         working-directory: SharpHound
-        run: dotnet build --no-restore -p:PreferLocalLibs=true -v diag
+        run: dotnet build --no-restore -p:PreferLocalLibs=true -v m
