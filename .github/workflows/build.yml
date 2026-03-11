@@ -32,12 +32,20 @@ jobs:
       - name: Run ls SHC
         working-directory: SharpHoundCommon
         run: |
-          ls
-          ls .\src
-          ls .\src\CommonLib
-          ls .\src\CommonLib\bin
-          ls .\src\SharpHoundRPC
-          ls .\src\SharpHoundRPC\bin
+#          ls
+#          ls .\src
+#          ls .\src\CommonLib
+#          ls .\src\CommonLib\bin
+#          ls .\src\CommonLib\bin\Debug
+#          ls .\src\CommonLib\bin\Debug\net472
+#          ls .\src\CommonLib\bin\Release
+#          ls .\src\CommonLib\bin\Release\net472
+#          ls .\src\SharpHoundRPC
+#          ls .\src\SharpHoundRPC\bin
+          ls .\src\SharpHoundRPC\bin\Debug
+          ls .\src\SharpHoundRPC\bin\Debug\net472
+          ls .\src\SharpHoundRPC\bin\Release
+          ls .\src\SharpHoundRPC\bin\Release\net472
 
       - name: Checkout SharpHound
         uses: actions/checkout@v6
@@ -47,14 +55,11 @@ jobs:
       - name: Run ls SH
         working-directory: SharpHound
         run: |
-          ls
           ls ..
-          ls ..\SharpHoundCommon
-          ls ..\SharpHoundCommon\src
-          ls ..\SharpHoundCommon\src\CommonLib
-          ls ..\SharpHoundCommon\src\CommonLib\bin
-          ls ..\SharpHoundCommon\src\SharpHoundRPC
-          ls ..\SharpHoundCommon\src\SharpHoundRPC\bin
+          ls ..\SharpHoundCommon\src\CommonLib\bin\Debug\net472
+          ls ..\SharpHoundCommon\src\CommonLib\bin\Release\net472
+          ls ..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472
+          ls ..\SharpHoundCommon\src\SharpHoundRPC\bin\Release\net472
 
       - name: Check if local libs exist (from SharpHound perspective)
         working-directory: SharpHound
