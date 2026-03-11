@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: SpecterOps/SharpHoundCommon
-          ref: v4
+          ref: lfalslev/bed-7214 #v4
           path: SharpHoundCommon
 
       - name: Restore SharpHoundCommon Dependencies
