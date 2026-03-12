@@ -34,28 +34,10 @@ jobs:
         with:
           path: SharpHound
 
-      - name: Check if local libs exist (from SharpHound perspective)
+      - name: Restore SharpHound Dependencies
         working-directory: SharpHound
-        run: |
-          echo "Checking paths as SharpHound sees them..."
-          if (Test-Path "..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll") {
-            Write-Host "✓ CommonLib DLL found at relative path"
-            Get-Item "..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll" | Select-Object FullName, Length
-          } else {
-            Write-Host "✗ CommonLib DLL NOT found at relative path"
-          }
-          
-          if (Test-Path "..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472\SharpHoundRPC.dll") {
-            Write-Host "✓ RPC DLL found at relative path"
-            Get-Item "..\SharpHoundCommon\src\SharpHoundRPC\bin\Debug\net472\SharpHoundRPC.dll" | Select-Object FullName, Length
-          } else {
-            Write-Host "✗ RPC DLL NOT found at relative path"
-          }
-
-#      - name: Restore SharpHound Dependencies
-#        working-directory: SharpHound
-#        run: dotnet restore
+        run: dotnet restore
 
       - name: Build SharpHound
         working-directory: SharpHound
-        run: dotnet build -p:PreferLocalLibs=true
+        run: dotnet build --no-restore -p:PreferLocalLibs=true
