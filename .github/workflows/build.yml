@@ -34,6 +34,10 @@ jobs:
         with:
           path: SharpHound
 
+      - name: Restore SharpHound Dependencies
+        working-directory: SharpHound
+        run: dotnet restore
+        
       - name: Build SharpHound
         working-directory: SharpHound
         run: dotnet build --no-restore -p:PreferLocalLibs=true
