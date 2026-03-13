@@ -13,6 +13,7 @@ using SharpHoundCommonLib.DirectoryObjects;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
 using SharpHoundCommonLib.Processors;
+using SharpHoundRPC.Registry;
 using SharpHoundRPC.Wrappers;
 using Container = SharpHoundCommonLib.OutputTypes.Container;
 using Group = SharpHoundCommonLib.OutputTypes.Group;
@@ -40,7 +41,7 @@ namespace Sharphound.Runtime {
         private readonly SPNProcessors _spnProcessor;
         private readonly WebClientServiceProcessor _webClientProcessor;
         private readonly SmbProcessor _smbProcessor;
-        private readonly ConcurrentDictionary<string, RegistryProcessor> _registryProcessorMap = new();
+        private readonly ConcurrentDictionary<string, Lazy<RegistryProcessor>> _registryProcessorMap = new();
         private readonly Channel<CSVComputerStatus> _compStatusChannel;
         
         public ObjectProcessors(IContext context, ILogger log, Channel<CSVComputerStatus> compStatusChannel) {
@@ -85,6 +86,10 @@ namespace Sharphound.Runtime {
             _spnProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _ldapPropertyProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
             _certAbuseProcessor.ComputerStatusEvent -= HandleCompStatusEvent;
+            foreach (var lazy in _registryProcessorMap.Values) {
+                if (lazy.IsValueCreated) 
+                    lazy.Value.ComputerStatusEvent -= HandleCompStatusEvent;
+            }
         }
 
         private async Task HandleCompStatusEvent(CSVComputerStatus status) {
@@ -372,13 +377,14 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
                 await _context.DoDelay();
-                if (_registryProcessorMap.TryGetValue(resolvedSearchResult.DomainSid, out var processor)) {
-                    ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
-                } else {
-                    var newProcessor = new RegistryProcessor(null, resolvedSearchResult.Domain);
-                    _registryProcessorMap.TryAdd(resolvedSearchResult.DomainSid, newProcessor);
-                    ret.NTLMRegistryData = await newProcessor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
-                }
+                var processor = _registryProcessorMap.GetOrAdd(
+                    resolvedSearchResult.DomainSid,
+                    _ => new Lazy<RegistryProcessor>(() => {
+                        var newProcessor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
+                        newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
+                        return newProcessor;
+                    })).Value;
+                ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
             }
 
             if (_methods.HasFlag(CollectionMethod.WebClientService)) {
