@@ -174,7 +174,8 @@ namespace Sharphound
                         
                         var metricsRouter = new MetricRouter(
                             metricsRegistry.Definitions,
-                            [fileSink]);
+                            [fileSink],
+                            new DefaultLabelValuesCache());
                         
                         Metrics.Factory = new MetricFactory(metricsRouter);
                         
