@@ -166,9 +166,12 @@ namespace Sharphound
 
                         var metricsWriter = new MetricWriter();
                         
+                        var metricsFileName = string.IsNullOrEmpty(options.OutputPrefix) ? "metrics.log" : $"{options.OutputPrefix}_metrics.log";
+                        var metricsFilePath = System.IO.Path.Combine(options.OutputDirectory, metricsFileName);
+                        
                         var fileSink = new FileMetricSink(
                             metricsRegistry.Definitions,
-                            filePath: "metrics.log",
+                            filePath: metricsFilePath,
                             metricsWriter,
                             fileSinkOptions);
                         
@@ -189,7 +192,7 @@ namespace Sharphound
                 });
             } catch (Exception ex) {
                 logger.LogError($"Error running SharpHound: {ex.Message}\n{ex.StackTrace}");
-                _flushTimer.Dispose();
+                _flushTimer?.Dispose();
             }
         }
 
@@ -251,7 +254,7 @@ namespace Sharphound
             context = await links.AwaitLoopCompletion(context);
             context = links.SaveCacheFile(context);
             links.Finish(context);
-            _flushTimer.Dispose();
+            _flushTimer?.Dispose();
         }
 
         // Accessor function for the PS1 to work, do not change or remove
