@@ -23,7 +23,7 @@ dotnet build
 
 ## Requirements
 
-SharpHound is designed targeting .Net 4.6.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
+SharpHound is designed targeting .Net 4.7.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
 
 # SharpHound
 
