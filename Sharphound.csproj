@@ -16,7 +16,7 @@
     
     <PropertyGroup>
         <CommonLibsStableVersion>4.6.0</CommonLibsStableVersion>
-        <CommonLibsDevVersion>4.6.0</CommonLibsDevVersion>
+        <CommonLibsDevVersion>4.6.0-rc2</CommonLibsDevVersion>
 <!--        <CommonLibsDevVersion>0.0.0-dev*</CommonLibsDevVersion>-->
         <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
         <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
@@ -71,7 +71,7 @@
     </Target>
     <Target Name="LogCommonLibsVersion" BeforeTargets="Build">
         <Message Text="CommonLib Configuration:" Importance="high" />
-        <Message Text="  Using Local DLLs: $(_UseLocalLibs)" Importance="high" />
-        <Message Text="  Package Version: $(_CommonLibVersion)" Importance="high" />
+        <Message Condition="'$(_UseLocalLibs)' == 'true'" Text="  Using Local DLLs" Importance="high" />
+        <Message Condition="'$(_UseLocalLibs)' == 'false'" Text="  Package Version: $(_CommonLibsVersion)" Importance="high" />
     </Target>
 </Project>
