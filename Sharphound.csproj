@@ -16,15 +16,16 @@
     
     <PropertyGroup>
         <CommonLibsStableVersion>4.6.0</CommonLibsStableVersion>
-        <CommonLibsDevVersion>4.6.0-rc2</CommonLibsDevVersion>
-<!--        <CommonLibsDevVersion>0.0.0-dev*</CommonLibsDevVersion>-->
+        <CommonLibsDevVersion>0.0.0-dev*</CommonLibsDevVersion>
         <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
         <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
         
         <CommonSource>Dev</CommonSource>
         
         <!-- Determine if we should use local DLLs -->
-        <_UseLocalLibs Condition="'$(CommonSource)' == 'Local' And Exists('$(CommonLibPath)') And Exists('$(RPCPath)')">true</_UseLocalLibs>
+        <_UseLocalLibs Condition="'$(CommonSource)' == 'Local'">true</_UseLocalLibs>
+<!--        todo: break if no local dlls or fallback to dev?-->
+        <!--        <_UseLocalLibs Condition="'$(CommonSource)' == 'Local' And Exists('$(CommonLibPath)') And Exists('$(RPCPath)')">true</_UseLocalLibs>-->
         <_UseLocalLibs Condition="'$(_UseLocalLibs)' == ''">false</_UseLocalLibs>
 
         <!-- Select the package version -->

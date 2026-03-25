@@ -14,26 +14,8 @@ jobs:
         with:
           dotnet-version: 5.0.x
 
-      - name: Checkout SharpHoundCommon
+      - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          repository: SpecterOps/SharpHoundCommon
-          ref: v4
-          path: SharpHoundCommon
-
-      - name: Restore SharpHoundCommon Dependencies
-        working-directory: SharpHoundCommon
-        run: dotnet restore
-
-      - name: Build SharpHoundCommon
-        working-directory: SharpHoundCommon
-        run: dotnet build --no-restore
-
-      - name: Checkout SharpHound
-        uses: actions/checkout@v6
-        with:
-          path: SharpHound
         
-      - name: Build SharpHound
-        working-directory: SharpHound
-        run: dotnet build -p:PreferLocalLibs=true
+      - name: Build
+        run: dotnet build -p:CommonSource=Dev
