@@ -24,8 +24,6 @@
         
         <!-- Determine if we should use local DLLs -->
         <_UseLocalLibs Condition="'$(CommonSource)' == 'Local'">true</_UseLocalLibs>
-<!--        todo: break if no local dlls or fallback to dev?-->
-        <!--        <_UseLocalLibs Condition="'$(CommonSource)' == 'Local' And Exists('$(CommonLibPath)') And Exists('$(RPCPath)')">true</_UseLocalLibs>-->
         <_UseLocalLibs Condition="'$(_UseLocalLibs)' == ''">false</_UseLocalLibs>
 
         <!-- Select the package version -->
@@ -71,7 +69,7 @@
         <Exec Command="powershell -ep bypass -c &quot;. '$(ProjectDir)src\Powershell\Out-CompressedDLL.ps1';Out-CompressedDll -FilePath '$(TargetPath)' -TemplatePath '$(ProjectDir)src\\Powershell\Template.ps1' | Out-File -Encoding ASCII '$(TargetDir)$(TargetName).ps1'&quot;" />
     </Target>
     <Target Name="LogCommonLibsVersion" BeforeTargets="Build">
-        <Message Text="CommonLib Configuration:" Importance="high" />
+        <Message Text="Loading CommonLib Dependency:" Importance="high" />
         <Message Condition="'$(_UseLocalLibs)' == 'true'" Text="  Using Local DLLs" Importance="high" />
         <Message Condition="'$(_UseLocalLibs)' == 'false'" Text="  Package Version: $(_CommonLibsVersion)" Importance="high" />
     </Target>
