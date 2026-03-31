@@ -29,7 +29,7 @@ If you wish to build against a local copy of the library, ensure the `CommonLibP
 
 ## Requirements
 
-SharpHound is designed targeting .Net 4.6.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
+SharpHound is designed targeting .Net 4.7.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
 
 # CLI Arguments
 The listing below details the CLI arguments SharpHound supports. Additional details about these options can be found in the [BloodHound CE Collection documentation](https://bloodhound.specterops.io/collect-data/ce-collection/sharphound-flags).

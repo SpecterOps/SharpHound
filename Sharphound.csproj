@@ -16,19 +16,18 @@
     
     <PropertyGroup>
         <CommonLibsStableVersion>4.6.0</CommonLibsStableVersion>
-        <CommonLibsDevVersion>0.0.0-dev*</CommonLibsDevVersion>
         <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
         <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
         
         <CommonSource>Dev</CommonSource>
         
         <!-- Determine if we should use local DLLs -->
-        <_UseLocalLibs Condition="'$(CommonSource)' == 'Local'">true</_UseLocalLibs>
+        <_UseLocalLibs Condition="'$(CommonSource.ToLower())' == 'local'">true</_UseLocalLibs>
         <_UseLocalLibs Condition="'$(_UseLocalLibs)' == ''">false</_UseLocalLibs>
 
-        <!-- Select the package version -->
-        <_CommonLibsVersion Condition="'$(CommonSource)' == 'Stable'">$(CommonLibsStableVersion)</_CommonLibsVersion>
-        <_CommonLibsVersion Condition="'$(_CommonLibsVersion)' == ''">$(CommonLibsDevVersion)</_CommonLibsVersion>
+        <!-- Determine the package version -->
+        <_CommonLibsVersion Condition="'$(CommonSource.ToLower())' == 'stable'">$(CommonLibsStableVersion)</_CommonLibsVersion>
+        <_CommonLibsVersion Condition="'$(_CommonLibsVersion)' == ''">$(CommonLibsStableVersion)-dev*</_CommonLibsVersion>
     </PropertyGroup>
 
     <ItemGroup>
