@@ -21,16 +21,15 @@ dotnet restore .
 dotnet build
 ```
 
+By default, the project will build with the latest version of the [SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon). 
+
+To build against the latest stable release of the library, you can run `dotnet build -p:CommonLibSource=Stable`.
+
+If you wish to build against a local copy of the library, ensure the `CommonLibPath` and `RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonLibSource=Local`.
+
 ## Requirements
 
-SharpHound is designed targeting .Net 4.6.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
-
-# SharpHound
-
-```csharp
-dotnet restore .
-dotnet build
-```
+SharpHound is designed targeting .Net 4.7.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
 
 # CLI Arguments
 The listing below details the CLI arguments SharpHound supports. Additional details about these options can be found in the [BloodHound CE Collection documentation](https://bloodhound.specterops.io/collect-data/ce-collection/sharphound-flags).
