@@ -28,5 +28,6 @@ namespace Sharphound.Client
         public bool RecurseDomains { get; set; }
         public bool DoLocalAdminSessionEnum { get; set; }
         public bool ParititonLdapQueries { get; set; }
+        public bool Metrics { get; set; }
     }
 }
