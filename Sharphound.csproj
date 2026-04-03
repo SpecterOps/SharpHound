@@ -18,16 +18,23 @@
         <CommonLibsStableVersion>4.6.0</CommonLibsStableVersion>
         <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
         <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
-        
+
+        <!-- Derive the dev version by incrementing the patch of the stable version, mirroring
+             the auto-increment logic in SharpHoundCommon's publish-dev-package pipeline.
+             e.g. stable=4.6.0 → dev wildcard=4.6.1-dev* -->
+        <_StablePatch>$([System.Text.RegularExpressions.Regex]::Match($(CommonLibsStableVersion), '[0-9]+$').Value)</_StablePatch>
+        <_MajorMinor>$([System.Text.RegularExpressions.Regex]::Match($(CommonLibsStableVersion), '^[0-9]+\.[0-9]+').Value)</_MajorMinor>
+        <CommonLibsDevVersion>$(_MajorMinor).$([MSBuild]::Add($(_StablePatch), 1))-dev*</CommonLibsDevVersion>
+
         <CommonSource>Dev</CommonSource>
-        
+
         <!-- Determine if we should use local DLLs -->
         <_UseLocalLibs Condition="'$(CommonSource.ToLower())' == 'local'">true</_UseLocalLibs>
         <_UseLocalLibs Condition="'$(_UseLocalLibs)' == ''">false</_UseLocalLibs>
 
         <!-- Determine the package version -->
         <_CommonLibsVersion Condition="'$(CommonSource.ToLower())' == 'stable'">$(CommonLibsStableVersion)</_CommonLibsVersion>
-        <_CommonLibsVersion Condition="'$(_CommonLibsVersion)' == ''">$(CommonLibsStableVersion)-dev*</_CommonLibsVersion>
+        <_CommonLibsVersion Condition="'$(_CommonLibsVersion)' == ''">$(CommonLibsDevVersion)</_CommonLibsVersion>
     </PropertyGroup>
 
     <ItemGroup>
