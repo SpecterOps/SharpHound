@@ -36,7 +36,7 @@ jobs:
       - name: Build
         run: |
           VERSION=${{ github.ref_name }}
-          dotnet build -c ${{ matrix.release.type }} -p:Version=${VERSION:1} -p:CommonLibSource=Stable
+          dotnet build -c ${{ matrix.release.type }} -p:Version=${VERSION:1} -p:CommonLibSource=Release
 
       - name: Zip
         run: 7z a -tzip -mx9 SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip $PWD/bin/${{ matrix.release.type }}/net472/*
