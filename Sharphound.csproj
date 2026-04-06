@@ -15,7 +15,8 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <CommonLibsStableVersion>4.6.1-dev.202604031715</CommonLibsStableVersion>
+        <CommonLibsStableVersion>4.6.0</CommonLibsStableVersion>
+        <CommonLibsReleaseVersion>4.6.1-dev.202604031715</CommonLibsReleaseVersion>
         <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
         <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
 
@@ -34,6 +35,7 @@
 
         <!-- Determine the package version -->
         <_CommonLibsVersion Condition="'$(CommonSource.ToLower())' == 'stable'">$(CommonLibsStableVersion)</_CommonLibsVersion>
+        <_CommonLibsVersion Condition="'$(CommonSource.ToLower())' == 'release'">$(CommonLibsReleaseVersion)</_CommonLibsVersion>
         <_CommonLibsVersion Condition="'$(_CommonLibsVersion)' == ''">$(CommonLibsDevVersion)</_CommonLibsVersion>
     </PropertyGroup>
 
