@@ -15,29 +15,42 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <CommonLibsStableVersion>4.6.1</CommonLibsStableVersion>
-        <CommonLibsReleaseVersion>4.6.1</CommonLibsReleaseVersion>
-        <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
-        <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
-
-        <!-- Derive the dev version by incrementing the patch of the stable version, mirroring
-             the auto-increment logic in SharpHoundCommon's publish-dev-package pipeline.
-             e.g. stable=4.6.0 → dev wildcard=4.6.1-dev* -->
-        <_StablePatch>$([System.Text.RegularExpressions.Regex]::Match($(CommonLibsStableVersion), '[0-9]+$').Value)</_StablePatch>
-        <_MajorMinor>$([System.Text.RegularExpressions.Regex]::Match($(CommonLibsStableVersion), '^[0-9]+\.[0-9]+').Value)</_MajorMinor>
-        <CommonLibsDevVersion>$(_MajorMinor).$([MSBuild]::Add($(_StablePatch), 1))-dev*</CommonLibsDevVersion>
-
+        <CommonLibsVersion>4.6.1</CommonLibsVersion>
         <CommonSource>Dev</CommonSource>
-
-        <!-- Determine if we should use local DLLs -->
-        <_UseLocalLibs Condition="'$(CommonSource.ToLower())' == 'local'">true</_UseLocalLibs>
-        <_UseLocalLibs Condition="'$(_UseLocalLibs)' == ''">false</_UseLocalLibs>
-
-        <!-- Determine the package version -->
-        <_CommonLibsVersion Condition="'$(CommonSource.ToLower())' == 'stable'">$(CommonLibsStableVersion)</_CommonLibsVersion>
-        <_CommonLibsVersion Condition="'$(CommonSource.ToLower())' == 'release'">$(CommonLibsReleaseVersion)</_CommonLibsVersion>
-        <_CommonLibsVersion Condition="'$(_CommonLibsVersion)' == ''">$(CommonLibsDevVersion)</_CommonLibsVersion>
+        <_CommonSource>$(CommonSource.ToLower())</_CommonSource>
+        <_CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</_CommonLibPath>
+        <_RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</_RPCPath>
     </PropertyGroup>
+
+    <Target Name="ValidateCommonSource" BeforeTargets="Build">
+        <Error Condition="'$(_CommonSource)' != 'dev' AND '$(_CommonSource)' != 'stable' AND '$(_CommonSource)' != 'local'"
+               Text="Invalid CommonSource value '$(CommonSource)'. Valid values are: Dev, Stable, Local." />
+    </Target>
+
+    <PropertyGroup Condition="'$(_CommonSource)' != 'local'">
+        <_ResolvedVersion Condition="$(CommonLibsVersion.Contains('-'))">$(CommonLibsVersion)</_ResolvedVersion>
+        <_ResolvedVersion Condition="'$(_ResolvedVersion)' == '' AND '$(_CommonSource)' == 'dev'">$(CommonLibsVersion)-dev*</_ResolvedVersion>
+        <_ResolvedVersion Condition="'$(_ResolvedVersion)' == ''">$(CommonLibsVersion)</_ResolvedVersion>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'$(_CommonSource)' == 'local'">
+        <Reference Include="SharpHoundCommonLib">
+            <HintPath>$(_CommonLibPath)</HintPath>
+        </Reference>
+        <Reference Include="SharpHoundRPC">
+            <HintPath>$(_RPCPath)</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(_CommonSource)' != 'local'">
+        <PackageReference Include="SharpHoundCommon" Version="$(_ResolvedVersion)" />
+        <PackageReference Include="SharpHoundRPC" Version="$(_ResolvedVersion)" />
+    </ItemGroup>
+    
+    <Target Name="LogCommonLibsSource" BeforeTargets="Build">
+        <Message Text='CommonLib Source "$(CommonSource)":' Importance="high" />
+        <Message Condition="'$(_CommonSource)' == 'local'" Text="  Resolved Using Local DLLs" Importance="high" />
+        <Message Condition="'$(_CommonSource)' != 'local'" Text="  Resolved to NuGet Version: $(_ResolvedVersion)" Importance="high" />
+    </Target>
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
@@ -55,18 +68,6 @@
         <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
-    <ItemGroup Condition="'$(_UseLocalLibs)' == 'true'">
-        <Reference Include="SharpHoundCommonLib">
-            <HintPath>$(CommonLibPath)</HintPath>
-        </Reference>
-        <Reference Include="SharpHoundRPC">
-            <HintPath>$(RPCPath)</HintPath>
-        </Reference>
-    </ItemGroup>
-    <ItemGroup Condition="'$(_UseLocalLibs)' != 'true'">
-        <PackageReference Include="SharpHoundCommon" Version="$(_CommonLibsVersion)" />
-        <PackageReference Include="SharpHoundRPC" Version="$(_CommonLibsVersion)" />
-    </ItemGroup>
     <ItemGroup>
         <Reference Include="System.DirectoryServices" />
         <Reference Include="System.DirectoryServices.Protocols" />
@@ -75,10 +76,5 @@
     <Target Name="PS1" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
         <Message Text="Test" />
         <Exec Command="powershell -ep bypass -c &quot;. '$(ProjectDir)src\Powershell\Out-CompressedDLL.ps1';Out-CompressedDll -FilePath '$(TargetPath)' -TemplatePath '$(ProjectDir)src\\Powershell\Template.ps1' | Out-File -Encoding ASCII '$(TargetDir)$(TargetName).ps1'&quot;" />
-    </Target>
-    <Target Name="LogCommonLibsVersion" BeforeTargets="Build">
-        <Message Text="Loading CommonLib Dependency:" Importance="high" />
-        <Message Condition="'$(_UseLocalLibs)' == 'true'" Text="  Using Local DLLs" Importance="high" />
-        <Message Condition="'$(_UseLocalLibs)' == 'false'" Text="  Package Version: $(_CommonLibsVersion)" Importance="high" />
     </Target>
 </Project>
