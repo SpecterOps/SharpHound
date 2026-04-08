@@ -6,8 +6,8 @@
         <LangVersion>latest</LangVersion>
         <DebugType>full</DebugType>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
-        <Version>2.11.0</Version>
-        <FileVersion>2.11.0</FileVersion>
+        <Version>2.12.0</Version>
+        <FileVersion>2.12.0</FileVersion>
         <Company>SpecterOps</Company>
         <Product>SharpHound</Product>
         <AssemblyName>SharpHound</AssemblyName>
@@ -15,8 +15,8 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <CommonLibsStableVersion>4.6.0</CommonLibsStableVersion>
-        <CommonLibsReleaseVersion>4.6.1-dev.202604031715</CommonLibsReleaseVersion>
+        <CommonLibsStableVersion>4.6.1</CommonLibsStableVersion>
+        <CommonLibsReleaseVersion>4.6.1</CommonLibsReleaseVersion>
         <CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</CommonLibPath>
         <RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</RPCPath>
 
