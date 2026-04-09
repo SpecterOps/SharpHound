@@ -28,9 +28,9 @@
     </Target>
 
     <PropertyGroup Condition="'$(_CommonSource)' != 'local'">
-        <_ResolvedVersion Condition="$(CommonLibsVersion.Contains('-'))">$(CommonLibsVersion)</_ResolvedVersion>
-        <_ResolvedVersion Condition="'$(_ResolvedVersion)' == '' AND '$(_CommonSource)' == 'dev'">$(CommonLibsVersion)-dev*</_ResolvedVersion>
-        <_ResolvedVersion Condition="'$(_ResolvedVersion)' == ''">$(CommonLibsVersion)</_ResolvedVersion>
+        <_ResolvedCommonVersion Condition="$(CommonLibsVersion.Contains('-'))">$(CommonLibsVersion)</_ResolvedCommonVersion>
+        <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == '' AND '$(_CommonSource)' == 'dev'">$(CommonLibsVersion)-dev*</_ResolvedCommonVersion>
+        <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == ''">$(CommonLibsVersion)</_ResolvedCommonVersion>
     </PropertyGroup>
     
     <ItemGroup Condition="'$(_CommonSource)' == 'local'">
@@ -42,14 +42,14 @@
         </Reference>
     </ItemGroup>
     <ItemGroup Condition="'$(_CommonSource)' != 'local'">
-        <PackageReference Include="SharpHoundCommon" Version="$(_ResolvedVersion)" />
-        <PackageReference Include="SharpHoundRPC" Version="$(_ResolvedVersion)" />
+        <PackageReference Include="SharpHoundCommon" Version="$(_ResolvedCommonVersion)" />
+        <PackageReference Include="SharpHoundRPC" Version="$(_ResolvedCommonVersion)" />
     </ItemGroup>
     
     <Target Name="LogCommonLibsSource" BeforeTargets="Build">
         <Message Text='CommonLib Source "$(CommonSource)":' Importance="high" />
         <Message Condition="'$(_CommonSource)' == 'local'" Text="  Resolved Using Local DLLs" Importance="high" />
-        <Message Condition="'$(_CommonSource)' != 'local'" Text="  Resolved to NuGet Version: $(_ResolvedVersion)" Importance="high" />
+        <Message Condition="'$(_CommonSource)' != 'local'" Text="  Resolved to NuGet Version: $(_ResolvedCommonVersion)" Importance="high" />
     </Target>
 
     <ItemGroup>
