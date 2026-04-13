@@ -1,54 +1,21 @@
 name: Build
 
 on:
-  push:
-    branches: [ dev ]
   pull_request:
-    branches: [ dev ]
+    branches: [ 2.X ]
 
 jobs:
   build:
     runs-on: windows-latest
-    defaults:
-      run:
-        shell: bash
-
-    strategy:
-      matrix:
-        release:
-          - type: Debug
-            suffix: '-debug'
-          - type: Release
-            suffix: ''
-
-    name: Build (${{ matrix.release.type }})
 
     steps:
-      - uses: actions/checkout@v2
-
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 10.0.x
 
-      - name: Restore Dependencies
-        run: dotnet restore
-
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        
       - name: Build
-        run: dotnet build -c ${{ matrix.release.type }} -p:Version=0.0.0-rolling+${{ github.sha }}
-
-      - name: Zip
-        if: "! startsWith(github.event_name, 'pull_request')"
-        run: 7z a -tzip -mx9 SharpHound${{ matrix.release.suffix }}.zip $PWD/bin/${{ matrix.release.type }}/net472/*
-
-      - name: Update Rolling Release
-        if: "! startsWith(github.event_name, 'pull_request')"
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Rolling Release (unstable)
-          tag_name: rolling
-          prerelease: true
-          files: SharpHound${{ matrix.release.suffix }}.zip
-          body: |
-            Rolling release of SharpHound compiled from source (${{ github.sha }})
-            This is automatically kept up-to-date with the `${{ github.ref_name }}` ${{ github.ref_type }}.
+        run: dotnet build -p:CommonSource=Dev

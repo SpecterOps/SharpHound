@@ -99,7 +99,6 @@ namespace Sharphound.Runtime
                 await _outputChannel.Writer.WriteAsync(wkp);
             }
                 
-
             _outputChannel.Writer.Complete();
             _compStatusChannel?.Writer.Complete();
             _log.LogInformation("Output channel closed, waiting for output task to complete");
@@ -112,7 +111,7 @@ namespace Sharphound.Runtime
         internal async Task ConsumeSearchResults()
         {
             var log = _context.Logger;
-            var processor = new ObjectProcessors(_context, log);
+            var processor = new ObjectProcessors(_context, log, _compStatusChannel);
             var watch = new Stopwatch();
             var threadId = Thread.CurrentThread.ManagedThreadId;
             
@@ -130,7 +129,7 @@ namespace Sharphound.Runtime
 
                     log.LogTrace("Consumer {ThreadID} started processing {obj} ({type})", threadId, res.DisplayName, res.ObjectType);
                     watch.Start();
-                    var processed = await processor.ProcessObject(item, res, _compStatusChannel);
+                    var processed = await processor.ProcessObject(item, res);
                     watch.Stop();
                     log.LogTrace("Consumer {ThreadID} took {time} ms to process {obj}", threadId,
                         watch.Elapsed.TotalMilliseconds, res.DisplayName);
@@ -147,6 +146,8 @@ namespace Sharphound.Runtime
                 {
                     log.LogError(e, "error in consumer");
                 }
+                
+            processor.ClearEventHandlers();
 
             log.LogDebug("Consumer task on thread {id} completed", Thread.CurrentThread.ManagedThreadId);
         }

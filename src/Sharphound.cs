@@ -16,6 +16,7 @@
 
 using System;
 using System.DirectoryServices.Protocols;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
@@ -24,6 +25,9 @@ using Microsoft.Win32;
 using Sharphound.Client;
 using SharpHoundCommonLib;
 using SharpHoundCommonLib.Enums;
+using SharpHoundCommonLib.Models;
+using SharpHoundCommonLib.Services;
+using SharpHoundCommonLib.Static;
 
 namespace Sharphound
 {
@@ -35,11 +39,15 @@ namespace Sharphound
     #region Console Entrypoint
 
     public class Program {
+        private static MetricsFlushTimer _flushTimer;
+        
         public static async Task Main(string[] args) {
             var logger = new BasicLogger((int)LogLevel.Information);
             logger.LogInformation("This version of SharpHound is compatible with the 5.0.0 Release of BloodHound");
 
             try {
+                logger.LogInformation("SharpHound Version: {Version}", Assembly.GetExecutingAssembly().GetName().Version);
+                logger.LogInformation("SharpHound Common Version: {Version}", Assembly.GetAssembly(typeof(CommonLib)).GetName().Version);
                 // Checks the release version available on the machine.
                 var releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
                 if (releaseVersion == 0) releaseVersion = (int) Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full", "Release", 0);
@@ -85,7 +93,8 @@ namespace Sharphound
                         SearchForest = options.SearchForest,
                         RecurseDomains = options.RecurseDomains,
                         DoLocalAdminSessionEnum = options.DoLocalAdminSessionEnum,
-                        ParititonLdapQueries = options.PartitionLdapQueries
+                        ParititonLdapQueries = options.PartitionLdapQueries,
+                        Metrics = options.Metrics,
                     };
 
                     var ldapOptions = new LdapConfig
@@ -164,10 +173,44 @@ namespace Sharphound
                         }
                     }
 
+                    if (flags.Metrics) {
+                        var metricsRegistry = new MetricRegistry();
+                        metricsRegistry.RegisterDefaultMetrics();
+                        metricsRegistry.Seal();
+
+                        var fileSinkOptions = new FileMetricSinkOptions {
+                            FlushInterval = TimeSpan.FromSeconds(5),
+                        };
+
+                        var metricsWriter = new MetricWriter();
+                        
+                        var metricsFileName = string.IsNullOrEmpty(options.OutputPrefix) ? "metrics.log" : $"{options.OutputPrefix}_metrics.log";
+                        var metricsFilePath = System.IO.Path.Combine(options.OutputDirectory, metricsFileName);
+                        
+                        var fileSink = new FileMetricSink(
+                            metricsRegistry.Definitions,
+                            filePath: metricsFilePath,
+                            metricsWriter,
+                            fileSinkOptions);
+                        
+                        var metricsRouter = new MetricRouter(
+                            metricsRegistry.Definitions,
+                            [fileSink],
+                            new DefaultLabelValuesCache());
+                        
+                        Metrics.Factory = new MetricFactory(metricsRouter);
+                        
+                        _flushTimer = new MetricsFlushTimer(
+                            flush: metricsRouter.Flush,
+                            interval: fileSinkOptions.FlushInterval);
+                        
+                    }
+
                     await StartCollection(options, logger, resolved, flags, ldapOptions);
                 });
             } catch (Exception ex) {
                 logger.LogError($"Error running SharpHound: {ex.Message}\n{ex.StackTrace}");
+                _flushTimer?.Dispose();
             }
         }
 
@@ -229,6 +272,7 @@ namespace Sharphound
             context = await links.AwaitLoopCompletion(context);
             context = links.SaveCacheFile(context);
             links.Finish(context);
+            _flushTimer?.Dispose();
         }
 
         // Accessor function for the PS1 to work, do not change or remove

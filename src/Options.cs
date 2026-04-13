@@ -151,6 +151,9 @@ namespace Sharphound
         
         [Option(HelpText = "Split the main ldap query into smaller chunks to attempt to reduce server load")]
         public bool PartitionLdapQueries { get; set; }
+        
+        [Option(HelpText = "Output metrics that were captured from SharpHound")]
+        public bool Metrics { get; set; }
 
         //Loop Options
         [Option('l', "Loop", HelpText = "Loop computer collection")]
