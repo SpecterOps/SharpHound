@@ -1,7 +1,7 @@
 name: Publish
 
 on:
-  push: 
+  push:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
 
@@ -23,10 +23,10 @@ jobs:
     name: Build (${{ matrix.release.type }})
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # ratchet:actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
@@ -46,7 +46,7 @@ jobs:
           sha256sum SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip > SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # ratchet:softprops/action-gh-release@v2
         with:
           files: |
             SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip
