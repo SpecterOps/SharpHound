@@ -21,11 +21,11 @@ dotnet restore .
 dotnet build
 ```
 
-By default, the project will build with the latest version of the [SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon). 
+By default, the project will build with -dev prerelease version of the [SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon) tracking that main branch. 
 
-To build against the latest stable release of the library, you can run `dotnet build -p:CommonLibSource=Stable`.
+To build against the latest stable release of the library, you can run `dotnet build -p:CommonSource=Stable`.
 
-If you wish to build against a local copy of the library, ensure the `CommonLibPath` and `RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonLibSource=Local`.
+If you wish to build against a local copy of the library, ensure the `CommonLibPath` and `RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonSource=Local`.
 
 ## Requirements
 
