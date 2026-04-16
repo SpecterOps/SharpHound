@@ -14,7 +14,7 @@ Please refer to the [SharpHound section](https://bloodhound.specterops.io/collec
 
 ## Compilation Instructions
 
-To build this project, use a .net sdk and run the following:
+To build this project, using a .NET SDK and run the following:
 
 ```
 dotnet restore .
@@ -40,6 +40,7 @@ that exact version is used as-is for both `Stable` and `Dev` sources.
 dotnet build                        # Dev (default)
 dotnet build -p:CommonSource=Stable
 dotnet build -p:CommonSource=Local
+dotnet build --tl:off               # To view CommonLib resolution logs
 ```
 
 
