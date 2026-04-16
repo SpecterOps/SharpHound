@@ -26,10 +26,18 @@
         <Error Condition="'$(_CommonSource)' != 'dev' AND '$(_CommonSource)' != 'stable' AND '$(_CommonSource)' != 'local'"
                Text="Invalid CommonSource value '$(CommonSource)'. Valid values are: Dev, Stable, Local." />
     </Target>
+    
+    <PropertyGroup Condition="'$(_CommonSource)' == 'dev'">
+        <!-- Derive the dev version by incrementing the patch of the stable version e.g. 4.6.0 → 4.6.1-dev* -->
+        <_Major>$([System.Version]::Parse('$(CommonLibsVersion)').Major)</_Major>
+        <_Minor>$([System.Version]::Parse('$(CommonLibsVersion)').Minor)</_Minor>
+        <_Patch>$([System.Version]::Parse('$(CommonLibsVersion)').Build)</_Patch>
+        <_DevVersion>$(_Major).$(_Minor).$([MSBuild]::Add($(_Patch), 1))-dev*</_DevVersion>
+    </PropertyGroup>
 
     <PropertyGroup Condition="'$(_CommonSource)' != 'local'">
         <_ResolvedCommonVersion Condition="$(CommonLibsVersion.Contains('-'))">$(CommonLibsVersion)</_ResolvedCommonVersion>
-        <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == '' AND '$(_CommonSource)' == 'dev'">$(CommonLibsVersion)-dev*</_ResolvedCommonVersion>
+        <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == '' AND '$(_CommonSource)' == 'dev'">$(_DevVersion)</_ResolvedCommonVersion>
         <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == ''">$(CommonLibsVersion)</_ResolvedCommonVersion>
     </PropertyGroup>
     
