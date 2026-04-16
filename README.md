@@ -12,20 +12,36 @@ To determine the SharpHound version compatible with a deployed BloodHound CE ins
 
 Please refer to the [SharpHound section](https://bloodhound.specterops.io/collect-data/ce-collection/sharphound), part of the [BloodHound Community Edition documentation](https://bloodhound.specterops.io/home). 
 
-## Compile Instructions
+## Compilation Instructions
 
-To build this project, use .net 5.0 and run the following:
+To build this project, use a .net sdk and run the following:
 
 ```
 dotnet restore .
 dotnet build
 ```
 
-By default, the project will build with -dev prerelease version of the [SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon) tracking that main branch. 
-
-To build against the latest stable release of the library, you can run `dotnet build -p:CommonSource=Stable`.
+By default, the project builds against the next prerelease `-dev` version of the
+[SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon)
+(tracking the v4 branch).
 
 If you wish to build against a local copy of the library, ensure the `CommonLibPath` and `RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonSource=Local`.
+
+If `CommonLibsVersion` already contains a prerelease tag (e.g. `4.6.0-rc1`),
+that exact version is used as-is for both `Stable` and `Dev` sources.
+
+| `CommonSource` (default: `Dev`) | Package resolved                                                            |
+|---------------------------------|-----------------------------------------------------------------------------|
+| `Dev`                           | Prerelease (e.g. `4.6.0-rc1`) or next patch `-dev*` (e.g. `4.6.1-dev*`)     |
+| `Stable`                        | Current CommonLibsVersion (e.g. `4.6.0`)                                    |
+| `Local`                         | Local `SharpHoundCommon` DLLs                                               |
+
+```bash
+dotnet build                        # Dev (default)
+dotnet build -p:CommonSource=Stable
+dotnet build -p:CommonSource=Local
+```
+
 
 ## Requirements
 
