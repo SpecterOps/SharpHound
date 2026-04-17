@@ -14,10 +14,10 @@ Please refer to the [SharpHound section](https://bloodhound.specterops.io/collec
 
 ## Compilation Instructions
 
-To build this project, using a .NET SDK and run the following:
+To build this project, using a .NET SDK run the following:
 
-```
-dotnet restore .
+```bash
+dotnet restore
 dotnet build
 ```
 
@@ -25,7 +25,7 @@ By default, the project builds against the next prerelease `-dev` version of the
 [SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon)
 (tracking the v4 branch).
 
-If you wish to build against a local copy of the library, ensure the `CommonLibPath` and `RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonSource=Local`.
+If you wish to build against a local copy of the library, ensure the `_CommonLibPath` and `_RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonSource=Local`.
 
 If `CommonLibsVersion` already contains a prerelease tag (e.g. `4.6.0-rc1`),
 that exact version is used as-is for both `Stable` and `Dev` sources.
