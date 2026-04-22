@@ -25,7 +25,7 @@ By default, the project builds against the next prerelease `-dev` version of the
 [SharpHoundCommon Library](https://github.com/SpecterOps/SharpHoundCommon)
 (tracking the v4 branch).
 
-If you wish to build against a local copy of the library, ensure the `_CommonLibPath` and `_RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonSource=Local`. If `CommonLibsVersion` is set to a pre-release you will also need to remove the -label from the version.
+If you wish to build against a local copy of the library, ensure the `_CommonLibPath` and `_RPCPath` properties point to the correct DLLs, and run `dotnet build -p:CommonSource=Local`.
 
 If `CommonLibsVersion` already contains a prerelease tag (e.g. `4.6.0-rc1`),
 that exact version is used as-is for both `Stable` and `Dev` sources.
