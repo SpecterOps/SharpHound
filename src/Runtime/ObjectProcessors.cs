@@ -581,7 +581,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps)) {
-                ret.Properties = ContextUtils.Merge(ret.Properties, LdapPropertyProcessor.ReadGPOProperties(entry));
+                ret.Properties = ContextUtils.Merge(ret.Properties, await _ldapPropertyProcessor.ReadGPOProperties(entry));
                 if (_context.Flags.CollectAllProperties) {
                     ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
                         ret.Properties);
@@ -611,7 +611,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps)) {
-                ret.Properties = ContextUtils.Merge(ret.Properties, LdapPropertyProcessor.ReadOUProperties(entry));
+                ret.Properties = ContextUtils.Merge(ret.Properties, await _ldapPropertyProcessor.ReadOUProperties(entry));
                 if (_context.Flags.CollectAllProperties) {
                     ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
                         ret.Properties);
@@ -662,7 +662,7 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.CertServices)) {
                 ret.Properties =
-                    ContextUtils.Merge(LdapPropertyProcessor.ReadContainerProperties(entry), ret.Properties);
+                    ContextUtils.Merge(await _ldapPropertyProcessor.ReadContainerProperties(entry), ret.Properties);
                 if (_context.Flags.CollectAllProperties) {
                     ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
                         ret.Properties);
@@ -693,7 +693,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var props = LdapPropertyProcessor.ReadRootCAProperties(entry);
+                var props = await _ldapPropertyProcessor.ReadRootCAProperties(entry);
                 ret.Properties.Merge(props);
             }
 
@@ -724,7 +724,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var props = LdapPropertyProcessor.ReadAIACAProperties(entry);
+                var props = await _ldapPropertyProcessor.ReadAIACAProperties(entry);
                 ret.Properties.Merge(props);
             }
 
@@ -754,7 +754,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var props = LdapPropertyProcessor.ReadEnterpriseCAProperties(entry);
+                var props = await _ldapPropertyProcessor.ReadEnterpriseCAProperties(entry);
                 ret.Properties.Merge(props);
 
                 // Enabled cert templates
@@ -871,7 +871,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var props = LdapPropertyProcessor.ReadNTAuthStoreProperties(entry);
+                var props = await _ldapPropertyProcessor.ReadNTAuthStoreProperties(entry);
 
                 if (entry.TryGetByteArrayProperty(LDAPProperties.CACertificate, out var rawCertificates)) {
                     var certificates = from rawCertificate in rawCertificates
@@ -910,7 +910,7 @@ namespace Sharphound.Runtime {
             }
 
             if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var certTemplatesProps = LdapPropertyProcessor.ReadCertTemplateProperties(entry);
+                var certTemplatesProps = await _ldapPropertyProcessor.ReadCertTemplateProperties(entry);
                 ret.Properties.Merge(certTemplatesProps);
             }
 

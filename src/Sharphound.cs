@@ -104,7 +104,8 @@ namespace Sharphound
                         DisableSigning = options.DisableSigning,
                         ForceSSL = options.ForceSecureLDAP,
                         AuthType = AuthType.Negotiate,
-                        DisableCertVerification = options.DisableCertVerification
+                        DisableCertVerification = options.DisableCertVerification,
+                        SkipDenyAcesCount = options.SkipDenyAcesCount
                     };
 
                     if (options.DomainController != null) ldapOptions.Server = options.DomainController;
