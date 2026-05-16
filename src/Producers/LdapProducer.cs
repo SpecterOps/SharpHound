@@ -147,10 +147,9 @@ namespace Sharphound.Producers
 
                             if (searchResult.TryGetDistinguishedName(out var distinguishedName))
                             {
-                                var lower = distinguishedName.ToLower();
-                                if (lower.Contains("cn=domainupdates,cn=system"))
+                                if (distinguishedName.Contains("cn=domainupdates,cn=system", StringComparison.OrdinalIgnoreCase))
                                     continue;
-                                if (lower.Contains("cn=policies,cn=system") && (lower.StartsWith("cn=user") || lower.StartsWith("cn=machine")))
+                                if (distinguishedName.Contains("cn=policies,cn=system", StringComparison.OrdinalIgnoreCase) && (distinguishedName.StartsWith("cn=user", StringComparison.OrdinalIgnoreCase) || distinguishedName.StartsWith("cn=machine", StringComparison.OrdinalIgnoreCase)))
                                     continue;
 
                                 await Channel.Writer.WriteAsync(searchResult, cancellationToken);
