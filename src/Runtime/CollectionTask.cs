@@ -133,6 +133,7 @@ namespace Sharphound.Runtime
                     watch.Stop();
                     log.LogTrace("Consumer {ThreadID} took {time} ms to process {obj}", threadId,
                         watch.Elapsed.TotalMilliseconds, res.DisplayName);
+                    watch.Reset();
                     if (processed == null)
                         continue;
 
@@ -141,7 +142,6 @@ namespace Sharphound.Runtime
                         d.Properties.Add("collected", true);
                     }
                     await _outputChannel.Writer.WriteAsync(processed);
-                    watch.Reset();
                 }
                 catch (Exception e)
                 {
