@@ -141,6 +141,7 @@ namespace Sharphound.Runtime
                         d.Properties.Add("collected", true);
                     }
                     await _outputChannel.Writer.WriteAsync(processed);
+                    watch.Reset();
                 }
                 catch (Exception e)
                 {
