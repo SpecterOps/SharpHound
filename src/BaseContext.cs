@@ -161,6 +161,32 @@ namespace Sharphound
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
+                Timer = null;
+                CancellationTokenSource = null;
+                ResolvedCollectionMethods = null;
+                Logger = null;
+                LoopEnd = null;
+                LDAPUtils = null;
+                LoopDuration = null;
+                LoopInterval = null;
+                CurrentLoopTime = String.Empty;
+                CollectionTask = null;
+                StatusInterval = 0;
+                Threads = 0;
+                Throttle = 0;
+                Jitter = 0;
+                PortScanTimeout = 0;
+                LdapFilter = String.Empty;
+                SearchBase = String.Empty;
+                DomainName = String.Empty;
+                CacheFileName = String.Empty;
+                ComputerFile = String.Empty;
+                ZipFilename = String.Empty;
+                ZipPassword = String.Empty;
+                CurrentUserName = String.Empty;
+                RealDNSName = String.Empty;
+                OutputPrefix = String.Empty;
+                OutputDirectory = String.Empty;
                 disposedValue = true;
             }
         }
