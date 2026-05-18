@@ -50,8 +50,8 @@
         </Reference>
     </ItemGroup>
     <ItemGroup Condition="'$(_CommonSource)' != 'local'">
-        <PackageReference Include="SharpHoundCommon" Version="4.6.2-rc1" />
-        <PackageReference Include="SharpHoundRPC" Version="4.6.2-rc1" />
+        <PackageReference Include="SharpHoundCommon" Version="$(_ResolvedCommonVersion)" />
+        <PackageReference Include="SharpHoundRPC" Version="$(_ResolvedCommonVersion)" />
     </ItemGroup>
     
     <Target Name="LogCommonLibsSource" BeforeTargets="Build">
