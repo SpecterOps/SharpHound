@@ -15,7 +15,7 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <CommonLibsVersion>4.6.1</CommonLibsVersion>
+        <CommonLibsVersion>4.6.2-rc1</CommonLibsVersion>
         <CommonSource>Dev</CommonSource>
         <_CommonSource>$(CommonSource.ToLower())</_CommonSource>
         <_CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</_CommonLibPath>
@@ -50,8 +50,8 @@
         </Reference>
     </ItemGroup>
     <ItemGroup Condition="'$(_CommonSource)' != 'local'">
-        <PackageReference Include="SharpHoundCommon" Version="$(_ResolvedCommonVersion)" />
-        <PackageReference Include="SharpHoundRPC" Version="$(_ResolvedCommonVersion)" />
+        <PackageReference Include="SharpHoundCommon" Version="4.6.2-rc1" />
+        <PackageReference Include="SharpHoundRPC" Version="4.6.2-rc1" />
     </ItemGroup>
     
     <Target Name="LogCommonLibsSource" BeforeTargets="Build">
