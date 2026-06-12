@@ -6,13 +6,59 @@
         <LangVersion>latest</LangVersion>
         <DebugType>full</DebugType>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
-        <Version>2.8.0</Version>
-        <FileVersion>2.8.0</FileVersion>
+        <Version>2.13.0</Version>
+        <FileVersion>2.13.0</FileVersion>
         <Company>SpecterOps</Company>
         <Product>SharpHound</Product>
         <AssemblyName>SharpHound</AssemblyName>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <CommonLibsVersion>4.6.2</CommonLibsVersion>
+        <CommonSource>Dev</CommonSource>
+        <_CommonSource>$(CommonSource.ToLower())</_CommonSource>
+        <_CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</_CommonLibPath>
+        <_RPCPath>..\SharpHoundCommon\src\SharpHoundRPC\bin\$(Configuration)\net472\SharpHoundRPC.dll</_RPCPath>
+    </PropertyGroup>
+
+    <Target Name="ValidateCommonSource" BeforeTargets="Build">
+        <Error Condition="'$(_CommonSource)' != 'dev' AND '$(_CommonSource)' != 'stable' AND '$(_CommonSource)' != 'local'"
+               Text="Invalid CommonSource value '$(CommonSource)'. Valid values are: Dev, Stable, Local." />
+    </Target>
+    
+    <PropertyGroup Condition="'$(_CommonSource)' == 'dev' AND !$(CommonLibsVersion.Contains('-'))">
+        <!-- Derive the dev version by incrementing the patch of the stable version e.g. 4.6.0 → 4.6.1-dev* -->
+        <_Major>$([System.Version]::Parse('$(CommonLibsVersion)').Major)</_Major>
+        <_Minor>$([System.Version]::Parse('$(CommonLibsVersion)').Minor)</_Minor>
+        <_Patch>$([System.Version]::Parse('$(CommonLibsVersion)').Build)</_Patch>
+        <_DevVersion>$(_Major).$(_Minor).$([MSBuild]::Add($(_Patch), 1))-dev*</_DevVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(_CommonSource)' != 'local'">
+        <_ResolvedCommonVersion Condition="$(CommonLibsVersion.Contains('-'))">$(CommonLibsVersion)</_ResolvedCommonVersion>
+        <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == '' AND '$(_CommonSource)' == 'dev'">$(_DevVersion)</_ResolvedCommonVersion>
+        <_ResolvedCommonVersion Condition="'$(_ResolvedCommonVersion)' == ''">$(CommonLibsVersion)</_ResolvedCommonVersion>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'$(_CommonSource)' == 'local'">
+        <Reference Include="SharpHoundCommonLib">
+            <HintPath>$(_CommonLibPath)</HintPath>
+        </Reference>
+        <Reference Include="SharpHoundRPC">
+            <HintPath>$(_RPCPath)</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(_CommonSource)' != 'local'">
+        <PackageReference Include="SharpHoundCommon" Version="$(_ResolvedCommonVersion)" />
+        <PackageReference Include="SharpHoundRPC" Version="$(_ResolvedCommonVersion)" />
+    </ItemGroup>
+    
+    <Target Name="LogCommonLibsSource" BeforeTargets="Build">
+        <Message Text='CommonLib Source "$(CommonSource)":' Importance="high" />
+        <Message Condition="'$(_CommonSource)' == 'local'" Text="  Resolved Using Local DLLs" Importance="high" />
+        <Message Condition="'$(_CommonSource)' != 'local'" Text="  Resolved to NuGet Version: $(_ResolvedCommonVersion)" Importance="high" />
+    </Target>
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
@@ -25,17 +71,12 @@
         <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="SharpHoundCommon" Version="4.5.0" />
-        <PackageReference Include="SharpHoundRPC" Version="4.5.0" />
         <PackageReference Include="SharpZipLib" Version="1.3.3" />
         <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
         <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
     <ItemGroup>
-<!--       <Reference Include="SharpHoundCommon">-->
-<!--           <HintPath>..\SharpHoundCommon\src\CommonLib\bin\Debug\net472\SharpHoundCommonLib.dll</HintPath>-->
-<!--       </Reference>-->
         <Reference Include="System.DirectoryServices" />
         <Reference Include="System.DirectoryServices.Protocols" />
         <Reference Include="System.IO.Compression" />

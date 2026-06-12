@@ -1,9 +1,9 @@
 name: Publish
 
 on:
-  push: 
+  push:
     tags:
-      - "v*.*.*"
+      - v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build:
@@ -23,12 +23,12 @@ jobs:
     name: Build (${{ matrix.release.type }})
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # ratchet:actions/setup-dotnet@v5
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore Dependencies
         run: dotnet restore
@@ -36,7 +36,7 @@ jobs:
       - name: Build
         run: |
           VERSION=${{ github.ref_name }}
-          dotnet build -c ${{ matrix.release.type }} -p:Version=${VERSION:1}
+          dotnet build -c ${{ matrix.release.type }} -p:Version=${VERSION:1} -p:CommonSource=Stable
 
       - name: Zip
         run: 7z a -tzip -mx9 SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip $PWD/bin/${{ matrix.release.type }}/net472/*
@@ -46,7 +46,7 @@ jobs:
           sha256sum SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip > SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3
         with:
           files: |
             SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip
