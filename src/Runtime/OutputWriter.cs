@@ -1,19 +1,18 @@
-﻿using ICSharpCode.SharpZipLib.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+using System.Timers;
+using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 using Sharphound.Client;
 using Sharphound.Writers;
 using SharpHoundCommonLib.Enums;
 using SharpHoundCommonLib.OutputTypes;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.DirectoryServices;
-using System.IO;
-using System.Linq;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using System.Timers;
 
 namespace Sharphound.Runtime
 {
@@ -166,6 +165,7 @@ namespace Sharphound.Runtime
                 }
             }
 
+            Console.WriteLine("Closing writers");
             return await FlushWriters();
         }
 
