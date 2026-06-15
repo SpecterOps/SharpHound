@@ -974,7 +974,7 @@ namespace Sharphound.Runtime {
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
-            if (_methods.HasFlag(CollectionMethod.ACL))
+            if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.Site))
             {
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
@@ -983,9 +983,10 @@ namespace Sharphound.Runtime {
                 ret.Aces = aces;
                 ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+                ret.InheritanceHashes = _aclProcessor.GetInheritedAceHashes(entry, resolvedSearchResult).ToArray();
             }
 
-            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.Site))
             {
                 ret.Properties =
                     ContextUtils.Merge(LdapPropertyProcessor.ReadSiteProperties(entry), ret.Properties);
@@ -996,7 +997,16 @@ namespace Sharphound.Runtime {
                 }
             }
 
-            ret.Links = await _siteProcessor.ReadSiteGPLinks(resolvedSearchResult, entry).ToArrayAsync();
+            if (_methods.HasFlag(CollectionMethod.Container) || _methods.HasFlag(CollectionMethod.Site)) {
+                if (await _containerProcessor.GetContainingObject(entry) is (true, var container)) {
+                    ret.ContainedBy = container;
+                }
+            }
+
+            if (_methods.HasFlag(CollectionMethod.Site))
+            {
+                ret.Links = await _siteProcessor.ReadSiteGPLinks(resolvedSearchResult, entry).ToArrayAsync();            
+            }
 
             return ret;
         }
@@ -1010,14 +1020,8 @@ namespace Sharphound.Runtime {
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
-
             
-            if (await _siteProcessor.GetContainingSiteForServer(entry) is (true, var container))
-            {
-                ret.ContainedBy = container;
-            }
-            
-            if (_methods.HasFlag(CollectionMethod.ACL))
+            if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.Site))
             {
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
@@ -1028,7 +1032,7 @@ namespace Sharphound.Runtime {
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
 
-            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.Site))
             {
                 ret.Properties =
                     ContextUtils.Merge(LdapPropertyProcessor.ReadSiteServerProperties(entry), ret.Properties);
@@ -1036,6 +1040,20 @@ namespace Sharphound.Runtime {
                 {
                     ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
                         ret.Properties);
+                }
+            }
+
+            if (_methods.HasFlag(CollectionMethod.Container) || _methods.HasFlag(CollectionMethod.Site)) {
+                if (await _siteProcessor.GetContainingSiteForServer(entry) is (true, var container))
+                {
+                    ret.ContainedBy = container;
+                }
+            }
+
+            if (_methods.HasFlag(CollectionMethod.Site)) {
+                if (await _siteProcessor.GetReferencedComputerForServer(entry) is (true, var server))
+                {
+                    ret.ServerIs = server;
                 }
             }
 
@@ -1052,7 +1070,7 @@ namespace Sharphound.Runtime {
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
-            if (_methods.HasFlag(CollectionMethod.ACL))
+            if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.Site))
             {
                 var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
                     .ToArrayAsync(cancellationToken: _cancellationToken);
@@ -1063,7 +1081,7 @@ namespace Sharphound.Runtime {
                 ret.Properties.Add("isaclprotected", ret.IsACLProtected);
             }
             
-            if (_methods.HasFlag(CollectionMethod.ObjectProps))
+            if (_methods.HasFlag(CollectionMethod.ObjectProps) || _methods.HasFlag(CollectionMethod.Container) || _methods.HasFlag(CollectionMethod.Site))
             {
                 ret.Properties =
                     ContextUtils.Merge(LdapPropertyProcessor.ReadSiteSubnetProperties(entry), ret.Properties);
@@ -1074,7 +1092,6 @@ namespace Sharphound.Runtime {
                 }
 
                 // Can only deduce containing site for a subnet if we read the object properties, including siteObject
-
                 if (await _siteProcessor.GetContainingSiteForSubnet(ret.Properties) is (true, var container))
                 {
                     ret.ContainedBy = container;
