@@ -216,7 +216,7 @@ namespace Sharphound.Runtime
                 _containerOutput.GetFilename(), _domainOutput.GetFilename(), _gpoOutput.GetFilename(),
                 _ouOutput.GetFilename(), _rootCAOutput.GetFilename(), _aIACAOutput.GetFilename(),
                 _enterpriseCAOutput.GetFilename(), _nTAuthStoreOutput.GetFilename(),
-                _certTemplateOutput.GetFilename(),_issuancePolicyOutput.GetFilename(),
+                _certTemplateOutput.GetFilename(), _issuancePolicyOutput.GetFilename(),
                 _siteOutput.GetFilename(), _siteServerOutput.GetFilename(), _siteSubnetOutput.GetFilename(),
             });
 
