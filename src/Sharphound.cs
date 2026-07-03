@@ -88,6 +88,7 @@ namespace Sharphound
                         RandomizeFilenames = options.RandomFileNames,
                         MemCache = options.MemCache,
                         CollectAllProperties = options.CollectAllProperties,
+                        SkipDenyAcesCount = options.SkipDenyAcesCount,
                         DCOnly = dconly,
                         PrettyPrint = options.PrettyPrint,
                         SearchForest = options.SearchForest,
@@ -104,8 +105,7 @@ namespace Sharphound
                         DisableSigning = options.DisableSigning,
                         ForceSSL = options.ForceSecureLDAP,
                         AuthType = AuthType.Negotiate,
-                        DisableCertVerification = options.DisableCertVerification,
-                        SkipDenyAcesCount = options.SkipDenyAcesCount
+                        DisableCertVerification = options.DisableCertVerification
                     };
 
                     if (options.DomainController != null) ldapOptions.Server = options.DomainController;
