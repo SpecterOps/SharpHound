@@ -193,7 +193,7 @@ namespace Sharphound
 
                     temp.Add(new EnumerationDomain() {
                         Name = d.Name,
-                        DomainSid = domainSid
+                        DomainSid = domainSid?.ToUpper()
                     });
                 }
 
@@ -221,7 +221,7 @@ namespace Sharphound
                 context.Domains = new[] {
                     new EnumerationDomain {
                         Name = domain,
-                        DomainSid = sid
+                        DomainSid = sid?.ToUpper()
                     }
                 };
             } else {
@@ -269,7 +269,7 @@ namespace Sharphound
                         DomainSid = trust.TargetDomainSid.ToUpper()
                     });
 
-                    if (!enumeratedDomains.Contains(trust.TargetDomainSid))
+                    if (!enumeratedDomains.Contains(trust.TargetDomainSid.ToUpper()))
                         enumerationQueue.Enqueue((trust.TargetDomainSid, trust.TargetDomainName));
                 }
             }

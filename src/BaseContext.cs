@@ -67,7 +67,7 @@ namespace Sharphound
             CurrentLoopTime = $"{DateTime.Now:yyyyMMddHHmmss}";
         }
 
-        public HashSet<string> CollectedDomainSids { get; } = new();
+        public HashSet<string> CollectedDomainSids { get; } = new(StringComparer.OrdinalIgnoreCase);
 
         public async Task DoDelay()
         {
