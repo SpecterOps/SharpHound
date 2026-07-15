@@ -148,10 +148,14 @@ namespace Sharphound.Runtime {
             }
 
             if (!string.IsNullOrWhiteSpace(resolvedSearchResult.DomainSid)) {
-                props.Add("domainsid", resolvedSearchResult.DomainSid);
+                props.Add("domainsid", resolvedSearchResult.DomainSid.ToUpperInvariant());
             }
 
             return props;
+        }
+
+        private static string ToUpperInvariantSafe(string value) {
+            return string.IsNullOrEmpty(value) ? value : value.ToUpperInvariant();
         }
 
         // Helper method to handle AdminSDHolder processing
@@ -170,7 +174,7 @@ namespace Sharphound.Runtime {
         {
             var ret = new User
             {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult)) {
@@ -178,7 +182,7 @@ namespace Sharphound.Runtime {
             };
             if (entry.IsMSA()) ret.Properties.Add("msa", true);
             if (entry.IsGMSA()) ret.Properties.Add("gmsa", true);
-            ret.DomainSID = resolvedSearchResult.DomainSid;
+            ret.DomainSID = ToUpperInvariantSafe(resolvedSearchResult.DomainSid);
 
             if (_methods.HasFlag(CollectionMethod.ACL))
             {
@@ -245,7 +249,7 @@ namespace Sharphound.Runtime {
             ResolvedSearchResult resolvedSearchResult
         ) {
             var ret = new Computer {
-                ObjectIdentifier = resolvedSearchResult.ObjectId,
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
                 Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult))
             };
 
@@ -255,7 +259,7 @@ namespace Sharphound.Runtime {
             var hasLaps = entry.HasLAPS();
             ret.Properties.Add("haslaps", hasLaps);
             ret.IsDC = resolvedSearchResult.IsDomainController;
-            ret.DomainSID = resolvedSearchResult.DomainSid;
+            ret.DomainSID = ToUpperInvariantSafe(resolvedSearchResult.DomainSid);
 
             if (_methods.HasFlag(CollectionMethod.ACL))
             {
@@ -333,7 +337,7 @@ namespace Sharphound.Runtime {
                         Status = sessionResult.Collected ? StatusSuccess : sessionResult.FailureReason,
                         Task = "NetSessionEnum",
                         ComputerName = resolvedSearchResult.DisplayName,
-                        ObjectId = resolvedSearchResult.ObjectId,
+                        ObjectId = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
                     });
             }
 
@@ -349,7 +353,7 @@ namespace Sharphound.Runtime {
                         Status = privSessionResult.Collected ? StatusSuccess : privSessionResult.FailureReason,
                         Task = "NetWkstaUserEnum",
                         ComputerName = resolvedSearchResult.DisplayName,
-                        ObjectId = resolvedSearchResult.ObjectId,
+                        ObjectId = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
                     });
 
                 if (!_context.Flags.NoRegistryLoggedOn) {
@@ -362,7 +366,7 @@ namespace Sharphound.Runtime {
                             Status = registrySessionResult.Collected ? StatusSuccess : registrySessionResult.FailureReason,
                             Task = "RegistrySessions",
                             ComputerName = resolvedSearchResult.DisplayName,
-                            ObjectId = resolvedSearchResult.ObjectId,
+                            ObjectId = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
                         });
                 }
             }
@@ -464,7 +468,7 @@ namespace Sharphound.Runtime {
         private async Task<Group> ProcessGroupObject(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new Group {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -517,12 +521,12 @@ namespace Sharphound.Runtime {
         private async Task<Domain> ProcessDomainObject(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new Domain {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             if (await _context.LDAPUtils.GetForest(resolvedSearchResult.DisplayName) is (true, var forest) &&
                 await _context.LDAPUtils.GetDomainSidFromDomainName(forest) is (true, var forestSid)) {
-                ret.ForestRootIdentifier = forestSid;
+                ret.ForestRootIdentifier = ToUpperInvariantSafe(forestSid);
             }
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -565,7 +569,7 @@ namespace Sharphound.Runtime {
         private async Task<GPO> ProcessGPOObject(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new GPO {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -594,7 +598,7 @@ namespace Sharphound.Runtime {
         private async Task<OU> ProcessOUObject(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new OU {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -639,7 +643,7 @@ namespace Sharphound.Runtime {
         private async Task<Container> ProcessContainerObject(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new Container {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -675,8 +679,8 @@ namespace Sharphound.Runtime {
 
         private async Task<RootCA> ProcessRootCA(IDirectoryObject entry, ResolvedSearchResult resolvedSearchResult) {
             var ret = new RootCA {
-                ObjectIdentifier = resolvedSearchResult.ObjectId,
-                DomainSID = resolvedSearchResult.DomainSid
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
+                DomainSID = ToUpperInvariantSafe(resolvedSearchResult.DomainSid)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -708,7 +712,7 @@ namespace Sharphound.Runtime {
 
         private async Task<AIACA> ProcessAIACA(IDirectoryObject entry, ResolvedSearchResult resolvedSearchResult) {
             var ret = new AIACA {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -739,7 +743,7 @@ namespace Sharphound.Runtime {
 
         private async Task<EnterpriseCA> ProcessEnterpriseCA(IDirectoryObject entry, ResolvedSearchResult resolvedSearchResult) {
             var ret = new EnterpriseCA {
-                ObjectIdentifier = resolvedSearchResult.ObjectId,
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
                 Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult))
             };
 
@@ -779,13 +783,13 @@ namespace Sharphound.Runtime {
                 if (caName != null && dnsHostName != null) {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
-                        ret.HostingComputer = sid;
+                        ret.HostingComputer = ToUpperInvariantSafe(sid);
                         await HandleCompStatusEvent(new CSVComputerStatus
                             {
                                 Status = ComputerStatus.Success,
                                 ComputerName = resolvedSearchResult.DisplayName,
                                 Task = nameof(ProcessEnterpriseCA),
-                                ObjectId = resolvedSearchResult.ObjectId,
+                                ObjectId = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
                             });
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
@@ -809,14 +813,15 @@ namespace Sharphound.Runtime {
                 if (caName != null && dnsHostName != null) {
                     if (await _context.LDAPUtils.ResolveHostToSid(dnsHostName, resolvedSearchResult.DomainSid) is
                             (true, var sid) && sid.StartsWith("S-1-")) {
+                        var upperSid = ToUpperInvariantSafe(sid);
                         await HandleCompStatusEvent(new CSVComputerStatus
                         {
                             Status = ComputerStatus.Success,
                             ComputerName = resolvedSearchResult.DisplayName,
                             Task = nameof(ProcessEnterpriseCA),
-                            ObjectId = sid,
+                            ObjectId = upperSid,
                         });
-                        ret.HostingComputer = sid;
+                        ret.HostingComputer = upperSid;
                     } else {
                         _log.LogWarning("CA {Name} host ({Dns}) could not be resolved to a SID.", caName, dnsHostName);
                     }
@@ -854,8 +859,8 @@ namespace Sharphound.Runtime {
         private async Task<NTAuthStore> ProcessNTAuthStore(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new NTAuthStore {
-                ObjectIdentifier = resolvedSearchResult.ObjectId,
-                DomainSID = resolvedSearchResult.DomainSid
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId),
+                DomainSID = ToUpperInvariantSafe(resolvedSearchResult.DomainSid)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -894,7 +899,7 @@ namespace Sharphound.Runtime {
         private async Task<CertTemplate> ProcessCertTemplate(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new CertTemplate {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
@@ -926,7 +931,7 @@ namespace Sharphound.Runtime {
         private async Task<IssuancePolicy> ProcessIssuancePolicy(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult) {
             var ret = new IssuancePolicy {
-                ObjectIdentifier = resolvedSearchResult.ObjectId
+                ObjectIdentifier = ToUpperInvariantSafe(resolvedSearchResult.ObjectId)
             };
 
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
