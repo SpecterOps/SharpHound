@@ -169,7 +169,7 @@ namespace Sharphound.Producers
                         Status = ComputerStatus.Success,
                         ComputerName = path,
                         Task = "StealthProducer - FindPathTargetSids",
-                        ObjectId = sid,
+                        ObjectId = sid?.ToUpperInvariant(),
                     });
                     if (sid != null && sid.StartsWith("S-1-5")) {
                         var searchResult = await Context.LDAPUtils.Query(new LdapQueryParameters() {

@@ -75,7 +75,7 @@ namespace Sharphound.Producers
                                 Status = ComputerStatus.Success,
                                 ComputerName = computer,
                                 Task = "ComputerFileProducer - Produce",
-                                ObjectId = tempSid
+                                ObjectId = tempSid?.ToUpperInvariant()
                             }, cancellationToken);
                             sid = tempSid;
                         } else {
