@@ -6,8 +6,8 @@
         <LangVersion>latest</LangVersion>
         <DebugType>full</DebugType>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
-        <Version>2.13.0</Version>
-        <FileVersion>2.13.0</FileVersion>
+        <Version>2.14.0</Version>
+        <FileVersion>2.14.0</FileVersion>
         <Company>SpecterOps</Company>
         <Product>SharpHound</Product>
         <AssemblyName>SharpHound</AssemblyName>
@@ -15,7 +15,7 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <CommonLibsVersion>4.6.2</CommonLibsVersion>
+        <CommonLibsVersion>4.7.0-rc1</CommonLibsVersion>
         <CommonSource>Dev</CommonSource>
         <_CommonSource>$(CommonSource.ToLower())</_CommonSource>
         <_CommonLibPath>..\SharpHoundCommon\src\CommonLib\bin\$(Configuration)\net472\SharpHoundCommonLib.dll</_CommonLibPath>
