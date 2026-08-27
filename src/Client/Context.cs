@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SharpHoundCommonLib;
 using SharpHoundCommonLib.Enums;
+using SharpHoundCommonLib.Processors;
 using Timer = System.Timers.Timer;
 
 namespace Sharphound.Client
@@ -49,6 +50,7 @@ namespace Sharphound.Client
 
         ILogger Logger { get; set; }
         ILdapUtils LDAPUtils { get; set; }
+        ACLProcessorContext ACLProcessorContext { get; }
 
         string OutputPrefix { get; set; }
         string OutputDirectory { get; set; }

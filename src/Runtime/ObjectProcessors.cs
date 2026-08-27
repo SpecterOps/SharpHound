@@ -46,7 +46,7 @@ namespace Sharphound.Runtime {
         
         public ObjectProcessors(IContext context, ILogger log, Channel<CSVComputerStatus> compStatusChannel) {
             _context = context;
-            _aclProcessor = new ACLProcessor(context.LDAPUtils);
+            _aclProcessor = context.ACLProcessorContext.CreateACLProcessor(context.LDAPUtils);
             _spnProcessor = new SPNProcessors(context.LDAPUtils);
             _ldapPropertyProcessor = new LdapPropertyProcessor(context.LDAPUtils);
             _domainTrustProcessor = new DomainTrustProcessor(context.LDAPUtils);
