@@ -9,6 +9,7 @@ using Sharphound.Client;
 using Sharphound.Runtime;
 using SharpHoundCommonLib;
 using SharpHoundCommonLib.Enums;
+using SharpHoundCommonLib.Processors;
 using Timer = System.Timers.Timer;
 
 namespace Sharphound
@@ -29,6 +30,7 @@ namespace Sharphound
             Flags = flags;
             LDAPUtils = new LdapUtils();
             LDAPUtils.SetLdapConfig(ldapConfig);
+            ACLProcessorContext = new ACLProcessorContext();
             CancellationTokenSource = new CancellationTokenSource();
             AdminSDHolderHash = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
@@ -59,6 +61,7 @@ namespace Sharphound
         public int PortScanTimeout { get; set; } = 500;
         public CancellationTokenSource CancellationTokenSource { get; set; }
         public ILdapUtils LDAPUtils { get; set; }
+        public ACLProcessorContext ACLProcessorContext { get; }
         public Task CollectionTask { get; set; }
         public Flags Flags { get; set; }
 
@@ -129,40 +132,15 @@ namespace Sharphound
         /// </summary>
         public ConcurrentDictionary<string, string> AdminSDHolderHash { get; set; }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~Context()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        /// <summary>
-        ///     TODO: Implement the primary dispose pattern
-        /// </summary>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///     TODO: Implement the primary dispose pattern
-        /// </summary>
-        /// <param name="disposing"></param>
-        private void Dispose(bool disposing)
-        {
-            if (!disposedValue)
+            if (disposedValue)
             {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
+                return;
             }
+
+            ACLProcessorContext.Dispose();
+            disposedValue = true;
         }
     }
 }

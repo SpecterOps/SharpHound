@@ -198,7 +198,7 @@ namespace Sharphound
 
         private static async Task StartCollection(Options options, BasicLogger logger, CollectionMethod resolved, Flags flags, LdapConfig ldapOptions)
         {
-            IContext context = new BaseContext(logger, ldapOptions, flags)
+            using var baseContext = new BaseContext(logger, ldapOptions, flags)
             {
                 DomainName = options.Domain,
                 CacheFileName = options.CacheName,
@@ -222,6 +222,7 @@ namespace Sharphound
                 LocalAdminUsername = options.LocalAdminUsername,
                 LocalAdminPassword = options.LocalAdminPassword
             };
+            IContext context = baseContext;
 
             var cancellationTokenSource = new CancellationTokenSource();
             context.CancellationTokenSource = cancellationTokenSource;

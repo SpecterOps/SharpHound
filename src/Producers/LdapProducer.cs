@@ -94,7 +94,7 @@ namespace Sharphound.Producers
                                 //Context.Logger.LogDebug("{Domain} AdminSDHolder SD Bytes: {Bytes}", domain.Name, B64);
 
                                 // Create an instance of ACLProcessor - _aclProcessor from ObjectProcessors isn't in this context
-                                 var aclProcessor = new ACLProcessor(Context.LDAPUtils);
+                                var aclProcessor = Context.ACLProcessorContext.CreateACLProcessor(Context.LDAPUtils);
 
                                 // Calculate the authoritative SD based on a hash of the implicit ACLs & AclProtected
                                 var authoritativeSd = aclProcessor.CalculateImplicitACLHash(sd);
