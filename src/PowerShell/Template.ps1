@@ -30,13 +30,14 @@
             LoggedOn - Collect session information using privileged methods (needs admin!)
             ObjectProps - Collect node property information for users and computers
             SPNTargets - Collect SPN targets (currently only MSSQL)
-            Default - Collect Group Membership, Local Admin, Sessions, Containers, ACLs, Domain Trusts, and ADCS objects
-            DcOnly - Collect Group Membership, ACLs, ObjectProps, Trusts, Containers, GPO Admins, and ADCS objects
+            Default - Collect Group Membership, Local Admin, Sessions, Containers, ACLs, Domain Trusts, ADCS objects, and AD sites
+            DcOnly - Collect Group Membership, ACLs, ObjectProps, Trusts, Containers, GPO Admins, ADCS objects, and AD sites
             UserRights - Collect User Rights Assignment from domain computers (needs admin)
             CARegistry - Collect ADCS properties from registry of Certificate Authority servers
             DCRegistry - Collect properties from registry of Domain Controller servers
             AzureVM - Read the Azure guest VmId and add it to each Computer object's properties
             CertServices - Collect ADCS objects from Certificate Services
+            Site - Collect AD site, site server, and site subnet data
             All - Collect all data
 
         This can be a list of comma separated valued as well to run multiple collection methods!
