@@ -393,8 +393,8 @@ namespace Sharphound.Runtime {
                 await _context.DoDelay();
                 var processor = GetRegistryProcessor(resolvedSearchResult);
                 
-                // Currently these values are added as properties. Future work is need to refine to a more dedicated
-                // portion of the return object, as more collected values fill this returned object
+                // Currently these values are added as properties. Future work is needed to refine to a more dedicated
+                // portion of the return object, as more collected values fill this returned object.
                 var azureRegistryData = await processor.ReadAzureRegistryData(apiName);
                 if (azureRegistryData.Collected) {
                     ret.Properties["azvmid"] = azureRegistryData.Result.VmId;
