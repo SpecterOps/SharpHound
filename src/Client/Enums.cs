@@ -32,7 +32,7 @@
         SmbInfo,
         NTLMRegistry,
         Site,
-        AzureVM,
+        AzureRegistry,
         // Re-introduce this when we're ready for Event Log collection
         // EventLogs,
         All

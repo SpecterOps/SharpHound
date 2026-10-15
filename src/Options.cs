@@ -14,7 +14,7 @@ namespace Sharphound
         // Options that affect what is collected
         [Option('c', "collectionmethods", Default = new[] { "Default" },
             HelpText =
-                "Collection Methods: Group, LocalGroup, LocalAdmin, RDP, DCOM, PSRemote, Session, Trusts, ACL, Container, ComputerOnly, GPOLocalGroup, LoggedOn, ObjectProps, SPNTargets, UserRights, Default, DCOnly, CARegistry, DCRegistry, CertServices, Site, WebClientService, LdapServices, SmbInfo, NTLMRegistry, AzureVM, All")]
+                "Collection Methods: Group, LocalGroup, LocalAdmin, RDP, DCOM, PSRemote, Session, Trusts, ACL, Container, ComputerOnly, GPOLocalGroup, LoggedOn, ObjectProps, SPNTargets, UserRights, Default, DCOnly, CARegistry, DCRegistry, CertServices, Site, WebClientService, LdapServices, SmbInfo, NTLMRegistry, AzureRegistry, All")]
         public IEnumerable<string> CollectionMethods { get; set; }
 
         [Option('d', "domain", Default = null, HelpText = "Specify domain to enumerate")]
@@ -212,7 +212,7 @@ namespace Sharphound
                     CollectionMethodOptions.SmbInfo => CollectionMethod.SmbInfo,
                     CollectionMethodOptions.NTLMRegistry => CollectionMethod.NTLMRegistry,
                     CollectionMethodOptions.Site => CollectionMethod.Site,                  
-                    CollectionMethodOptions.AzureVM => CollectionMethod.AzureVM,
+                    CollectionMethodOptions.AzureRegistry => CollectionMethod.AzureRegistry,
                     
                     // Re-introduce this when we're ready for Event Log collection
                     // CollectionMethodOptions.EventLogs => CollectionMethod.EventLogs,

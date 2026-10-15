@@ -389,12 +389,16 @@ namespace Sharphound.Runtime {
                 ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
             }
 
-            if (_methods.HasFlag(CollectionMethod.AzureVM)) {
+            if (_methods.HasFlag(CollectionMethod.AzureRegistry)) {
                 await _context.DoDelay();
                 var processor = GetRegistryProcessor(resolvedSearchResult);
-                var vmId = await processor.ReadAzureVmId(apiName);
-                if (vmId.Collected)
-                    ret.Properties["azvmid"] = vmId.Result;
+                
+                // Currently these values are added as properties. Future work is need to refine to a more dedicated
+                // portion of the return object, as more collected values fill this returned object
+                var azureRegistryData = await processor.ReadAzureRegistryData(apiName);
+                if (azureRegistryData.Collected) {
+                    ret.Properties["azvmid"] = azureRegistryData.Result.VmId;
+                }
             }
 
             if (_methods.HasFlag(CollectionMethod.WebClientService)) {
