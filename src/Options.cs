@@ -280,6 +280,11 @@ namespace Sharphound
                     updates.Add("[-] Removed NTLMRegistry Collection");
                 }
 
+                if ((resolved & CollectionMethod.AzureRegistry) != 0) {
+                    resolved ^= CollectionMethod.AzureRegistry;
+                    updates.Add("[-] Removed AzureRegistry Collection");
+                }
+
                 if (localGroupRemoved)
                 {
                     resolved |= CollectionMethod.GPOLocalGroup;
