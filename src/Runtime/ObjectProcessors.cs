@@ -385,14 +385,20 @@ namespace Sharphound.Runtime {
 
             if (_methods.HasFlag(CollectionMethod.NTLMRegistry)) {
                 await _context.DoDelay();
-                var processor = _registryProcessorMap.GetOrAdd(
-                    resolvedSearchResult.DomainSid,
-                    _ => new Lazy<RegistryProcessor>(() => {
-                        var newProcessor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
-                        newProcessor.ComputerStatusEvent += HandleCompStatusEvent;
-                        return newProcessor;
-                    })).Value;
+                var processor = GetRegistryProcessor(resolvedSearchResult);
                 ret.NTLMRegistryData = await processor.ReadRegistrySettings(resolvedSearchResult.DisplayName);
+            }
+
+            if (_methods.HasFlag(CollectionMethod.AzureRegistry)) {
+                await _context.DoDelay();
+                var processor = GetRegistryProcessor(resolvedSearchResult);
+                
+                // Currently these values are added as properties. Future work is needed to refine to a more dedicated
+                // portion of the return object, as more collected values fill this returned object.
+                var azureRegistryData = await processor.ReadAzureRegistryData(apiName);
+                if (azureRegistryData.Collected) {
+                    ret.Properties["azvmid"] = azureRegistryData.Result.VmId;
+                }
             }
 
             if (_methods.HasFlag(CollectionMethod.WebClientService)) {
@@ -435,6 +441,16 @@ namespace Sharphound.Runtime {
             ret.LocalGroups = await localGroups.ToArrayAsync();
 
             return ret;
+        }
+
+        private RegistryProcessor GetRegistryProcessor(ResolvedSearchResult resolvedSearchResult) {
+            return _registryProcessorMap.GetOrAdd(
+                resolvedSearchResult.DomainSid,
+                _ => new Lazy<RegistryProcessor>(() => {
+                    var processor = new RegistryProcessor(null, new StrategyExecutor(), resolvedSearchResult.Domain);
+                    processor.ComputerStatusEvent += HandleCompStatusEvent;
+                    return processor;
+                })).Value;
         }
 
         private async void ProcessDomainController(ResolvedSearchResult resolvedSearchResult, Computer ret,
