@@ -22,6 +22,8 @@ using Label = SharpHoundCommonLib.Enums.Label;
 namespace Sharphound.Runtime {
     public class ObjectProcessors {
         private const string StatusSuccess = "Success";
+        private const string CustomExplicitDenyAcesCountProperty = "customexplicitdenyacescount";
+        private const string CustomInheritedDenyAcesCountProperty = "custominheriteddenyacescount";
         private readonly ACLProcessor _aclProcessor;
         private readonly CertAbuseProcessor _certAbuseProcessor;
         private readonly CancellationToken _cancellationToken;
@@ -173,6 +175,28 @@ namespace Sharphound.Runtime {
             return null;
         }
 
+        private async Task<ACE[]> ProcessACL(IDirectoryObject entry, ResolvedSearchResult resolvedSearchResult,
+            Dictionary<string, object> properties) {
+            if (_context.Flags.SkipDenyAcesCount) {
+                return await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
+                    .ToArrayAsync(cancellationToken: _cancellationToken);
+            }
+
+            var result = await _aclProcessor.ProcessACLWithCustomDenyAces(resolvedSearchResult, entry);
+            AddCustomDenyAceCounts(properties, result.CustomDenyAceCounts);
+            return result.Aces;
+        }
+
+        private static void AddCustomDenyAceCounts(Dictionary<string, object> properties,
+            ACLProcessor.CustomDenyAceCounts counts) {
+            if (counts.Total == 0) {
+                return;
+            }
+
+            properties[CustomExplicitDenyAcesCountProperty] = counts.ExplicitCount;
+            properties[CustomInheritedDenyAcesCountProperty] = counts.InheritedCount;
+        }
+
         private async Task<User> ProcessUserObject(IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult)
         {
@@ -193,8 +217,7 @@ namespace Sharphound.Runtime {
                 // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
                 var adminSdHolderHash = GetAdminSdHolderHash(resolvedSearchResult.Domain);
 
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 var gmsa = entry.GetByteProperty(LDAPProperties.GroupMSAMembership);
@@ -270,8 +293,7 @@ namespace Sharphound.Runtime {
                 // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
                 var adminSdHolderHash = GetAdminSdHolderHash(resolvedSearchResult.Domain);
 
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -499,8 +521,7 @@ namespace Sharphound.Runtime {
                 // AdminSDHolderProtected only on security principal nodes: User, Computer, Group
                 var adminSdHolderHash = GetAdminSdHolderHash(resolvedSearchResult.Domain);
 
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -552,8 +573,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Aces = aces;
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
@@ -595,8 +615,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -624,8 +643,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -674,8 +692,7 @@ namespace Sharphound.Runtime {
                 }
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -707,8 +724,7 @@ namespace Sharphound.Runtime {
 
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -738,8 +754,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -768,8 +783,7 @@ namespace Sharphound.Runtime {
             };
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -885,8 +899,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -924,8 +937,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
@@ -956,8 +968,7 @@ namespace Sharphound.Runtime {
             ret.Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult));
 
             if (_methods.HasFlag(CollectionMethod.ACL) || _methods.HasFlag(CollectionMethod.CertServices)) {
-                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
-                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                var aces = await ProcessACL(entry, resolvedSearchResult, ret.Properties);
                 ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
                 ret.Properties.Add("doesanyinheritedacegrantownerrights", aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
                 ret.Aces = aces;
