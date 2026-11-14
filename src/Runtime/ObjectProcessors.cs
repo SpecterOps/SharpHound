@@ -137,6 +137,8 @@ namespace Sharphound.Runtime {
                     return await ProcessSiteServerObject(entry, resolvedSearchResult);
                 case Label.SiteSubnet:
                     return await ProcessSiteSubnetObject(entry, resolvedSearchResult);
+                case Label.DMSA:
+                    return await ProcessDMSAObject(entry, resolvedSearchResult);
                 case Label.Base:
                     return null;
                 default:
@@ -248,6 +250,46 @@ namespace Sharphound.Runtime {
             return ret;
         }
 
+        private async Task<DMSA> ProcessDMSAObject(IDirectoryObject entry,
+            ResolvedSearchResult resolvedSearchResult) {
+            var ret = new DMSA {
+                ObjectIdentifier = resolvedSearchResult.ObjectId,
+                Properties = new Dictionary<string, object>(GetCommonProperties(entry, resolvedSearchResult)) {
+                    { "samaccountname", entry.GetProperty(LDAPProperties.SAMAccountName) }
+                }
+            };
+
+            if (_methods.HasFlag(CollectionMethod.ACL)) {
+                var aces = await _aclProcessor.ProcessACL(resolvedSearchResult, entry, true)
+                    .ToArrayAsync(cancellationToken: _cancellationToken);
+                ret.Properties.Add("doesanyacegrantownerrights", aces.Any(ace => ace.IsPermissionForOwnerRightsSid));
+                ret.Properties.Add("doesanyinheritedacegrantownerrights",
+                    aces.Any(ace => ace.IsInheritedPermissionForOwnerRightsSid));
+                ret.Aces = aces;
+                ret.IsACLProtected = _aclProcessor.IsACLProtected(entry);
+                ret.Properties.Add("isaclprotected", ret.IsACLProtected);
+            }
+
+            if (_methods.HasFlag(CollectionMethod.ObjectProps)) {
+                if (entry.TryGetProperty(LDAPProperties.ManagedAccountPrecededByLink, out var predecessor) &&
+                    await _context.LDAPUtils.ResolveDistinguishedName(predecessor) is (true, var principal)) {
+                    ret.PrecededBy = principal;
+                }
+
+                if (_context.Flags.CollectAllProperties) {
+                    ret.Properties = ContextUtils.Merge(_ldapPropertyProcessor.ParseAllProperties(entry),
+                        ret.Properties);
+                }
+            }
+
+            if (_methods.HasFlag(CollectionMethod.Container) &&
+                await _containerProcessor.GetContainingObject(entry) is (true, var container)) {
+                ret.ContainedBy = container;
+            }
+
+            return ret;
+        }
+
         private async Task<Computer> ProcessComputerObject(
             IDirectoryObject entry,
             ResolvedSearchResult resolvedSearchResult
@@ -327,7 +369,7 @@ namespace Sharphound.Runtime {
             }
 
             if (resolvedSearchResult.IsDomainController)
-                ProcessDomainController(resolvedSearchResult, ret, apiName);
+                await ProcessDomainController(resolvedSearchResult, ret, apiName);
 
             var trimmedSamAccountName = samAccountName?.TrimEnd('$');
 
@@ -453,7 +495,7 @@ namespace Sharphound.Runtime {
                 })).Value;
         }
 
-        private async void ProcessDomainController(ResolvedSearchResult resolvedSearchResult, Computer ret,
+        private async Task ProcessDomainController(ResolvedSearchResult resolvedSearchResult, Computer ret,
             string apiName) {
             _log.LogDebug("Processing DC: {dc}", apiName);
 
@@ -464,7 +506,9 @@ namespace Sharphound.Runtime {
                     StrongCertificateBindingEnforcement =
                         _dcRegistryProcessor.GetStrongCertificateBindingEnforcement(apiName),
                     VulnerableNetlogonSecurityDescriptor =
-                        _dcRegistryProcessor.GetVulnerableNetlogonSecurityDescriptor(apiName)
+                        _dcRegistryProcessor.GetVulnerableNetlogonSecurityDescriptor(apiName),
+                    CurrentBuildNumber = _dcRegistryProcessor.GetCurrentBuildNumber(apiName),
+                    CurrentBuildRevision = _dcRegistryProcessor.GetCurrentBuildRevision(apiName)
                 };
 
                 ret.DCRegistryData = dCRegistryData;
