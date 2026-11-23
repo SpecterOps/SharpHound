@@ -65,7 +65,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Check Stable Release Tag
+      - name: Check Release Tag
         id: release_tag
         shell: bash
         run: |
