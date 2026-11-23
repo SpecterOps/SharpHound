@@ -2,11 +2,39 @@ name: Publish
 
 on:
   push:
+    branches:
+      - lfalslev/bed-7545
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
+  backfill-version-file:
+    if: github.repository == 'SpecterOps/SharpHound' && github.ref == 'refs/heads/lfalslev/bed-7545'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: backfill-version-file-v2.18.0
+    steps:
+      - name: Upload version.txt to v2.18.0
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: v2.18.0
+        run: |
+          version_file_exists=$(gh release view "$RELEASE_TAG" --json assets \
+            --jq 'any(.assets[]; .name == "version.txt")')
+          if [[ "$version_file_exists" == 'true' ]]; then
+            echo 'version.txt is already attached to the release.'
+            exit 0
+          fi
+
+          printf '%s\n' "$RELEASE_TAG" > version.txt
+          gh release upload "$RELEASE_TAG" version.txt
+
   build:
+    if: github.ref_type == 'tag'
     runs-on: windows-latest
     permissions:
       contents: read
@@ -59,6 +87,7 @@ jobs:
             SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
 
   publish:
+    if: github.ref_type == 'tag'
     needs: build
     runs-on: ubuntu-latest
     permissions:
