@@ -65,6 +65,17 @@ jobs:
       contents: write
 
     steps:
+      - name: Check Stable Release Tag
+        id: release_tag
+        shell: bash
+        run: |
+          stable_tag_pattern='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+          if [[ "$GITHUB_REF_NAME" =~ $stable_tag_pattern ]]; then
+            echo 'is_stable=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'is_stable=false' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Download Release Files
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # ratchet:actions/download-artifact@v8
         with:
@@ -72,17 +83,17 @@ jobs:
           merge-multiple: true
 
       - name: Write Version File
-        if: ${{ !contains(github.ref_name, '-rc') }}
+        if: ${{ steps.release_tag.outputs.is_stable == 'true' }}
         run: printf '%s\n' "$GITHUB_REF_NAME" > version.txt
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3
         with:
-          prerelease: ${{ contains(github.ref_name, '-rc') }}
+          prerelease: ${{ steps.release_tag.outputs.is_stable == 'false' }}
           fail_on_unmatched_files: true
           files: |
             SharpHound_${{ github.ref_name }}_windows_x86.zip
             SharpHound_${{ github.ref_name }}_windows_x86.zip.sha256
             SharpHound_${{ github.ref_name }}+debug_windows_x86.zip
             SharpHound_${{ github.ref_name }}+debug_windows_x86.zip.sha256
-            ${{ !contains(github.ref_name, '-rc') && 'version.txt' || '' }}
+            ${{ steps.release_tag.outputs.is_stable == 'true' && 'version.txt' || '' }}
