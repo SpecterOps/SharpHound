@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: read
     defaults:
       run:
         shell: bash
@@ -45,9 +47,53 @@ jobs:
         run: |
           sha256sum SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip > SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
 
-      - name: Upload to Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3
+      - name: Stage Release Files
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # ratchet:actions/upload-artifact@v7
         with:
-          files: |
+          name: sharphound-${{ matrix.release.type }}
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
+          path: |
             SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip
             SharpHound_${{ github.ref_name }}${{ matrix.release.suffix }}_windows_x86.zip.sha256
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check Release Tag
+        id: release_tag
+        shell: bash
+        run: |
+          stable_tag_pattern='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+          if [[ "$GITHUB_REF_NAME" =~ $stable_tag_pattern ]]; then
+            echo 'is_stable=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'is_stable=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download Release Files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # ratchet:actions/download-artifact@v8
+        with:
+          pattern: sharphound-*
+          merge-multiple: true
+
+      - name: Write Version File
+        if: ${{ steps.release_tag.outputs.is_stable == 'true' }}
+        run: printf '%s\n' "$GITHUB_REF_NAME" > version.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3
+        with:
+          prerelease: ${{ steps.release_tag.outputs.is_stable == 'false' }}
+          fail_on_unmatched_files: true
+          files: |
+            SharpHound_${{ github.ref_name }}_windows_x86.zip
+            SharpHound_${{ github.ref_name }}_windows_x86.zip.sha256
+            SharpHound_${{ github.ref_name }}+debug_windows_x86.zip
+            SharpHound_${{ github.ref_name }}+debug_windows_x86.zip.sha256
+            ${{ steps.release_tag.outputs.is_stable == 'true' && 'version.txt' || '' }}
