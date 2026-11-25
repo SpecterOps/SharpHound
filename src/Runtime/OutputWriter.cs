@@ -37,6 +37,7 @@ namespace Sharphound.Runtime
         private readonly JsonDataWriter<Site> _siteOutput;
         private readonly JsonDataWriter<SiteServer> _siteServerOutput;
         private readonly JsonDataWriter<SiteSubnet> _siteSubnetOutput;
+        private readonly JsonDataWriter<DMSA> _dmsaOutput;
 
 
         private int _completedCount;
@@ -63,6 +64,7 @@ namespace Sharphound.Runtime
             _siteOutput = new JsonDataWriter<Site>(_context, DataType.Sites);
             _siteServerOutput = new JsonDataWriter<SiteServer>(_context, DataType.SiteServers);
             _siteSubnetOutput = new JsonDataWriter<SiteSubnet>(_context, DataType.SiteSubnets);
+            _dmsaOutput = new JsonDataWriter<DMSA>(_context, DataType.DMSAs);
 
             _runTimer = new Stopwatch();
             _statusTimer = new Timer(_context.StatusInterval);
@@ -160,6 +162,9 @@ namespace Sharphound.Runtime
                     case SiteSubnet siteSubnet:
                         await _siteSubnetOutput.AcceptObject(siteSubnet);
                         break;
+                    case DMSA dmsa:
+                        await _dmsaOutput.AcceptObject(dmsa);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(item));
                 }
@@ -187,6 +192,7 @@ namespace Sharphound.Runtime
             await _siteOutput.FlushWriter();
             await _siteServerOutput.FlushWriter();
             await _siteSubnetOutput.FlushWriter();
+            await _dmsaOutput.FlushWriter();
             CloseOutput();
             var fileName = ZipFiles();
             return fileName;
@@ -218,6 +224,7 @@ namespace Sharphound.Runtime
                 _enterpriseCAOutput.GetFilename(), _nTAuthStoreOutput.GetFilename(),
                 _certTemplateOutput.GetFilename(), _issuancePolicyOutput.GetFilename(),
                 _siteOutput.GetFilename(), _siteServerOutput.GetFilename(), _siteSubnetOutput.GetFilename(),
+                _dmsaOutput.GetFilename(),
             });
 
             foreach (var entry in fileList.Where(x => !string.IsNullOrEmpty(x)))
